@@ -33,7 +33,7 @@
     <FeedbackEMailAddress />
     <FeedbackEMailLinkText />
     <HeaderText />
-    <FooterText>Powered by &lt;a href="http://sourceforge.net/projects/avenciacommon" target="_parent"&gt;&lt;img style="border:none" src="http://sflogo.sourceforge.net/sflogo.php?group_id=275102&amp;amp;type=10" width="80" height="15" alt="Get AvenciaCommon at SourceForge.net. Fast, secure and Free Open Source software downloads" /&gt;&lt;/a&gt;  &lt;a href="http://avenciacommon.sourceforge.net" target="_parent"&gt;Return to project home page.&lt;/a&gt;</FooterText>
+    <FooterText>Powered by &lt;a href="http://sourceforge.net/projects/fastdao" target="_parent"&gt;&lt;img style="border:none" src="http://sflogo.sourceforge.net/sflogo.php?group_id=275102&amp;amp;type=10" width="80" height="15" alt="Get AvenciaCommon at SourceForge.net. Fast, secure and Free Open Source software downloads" /&gt;&lt;/a&gt;  &lt;a href="http://avenciacommon.sourceforge.net" target="_parent"&gt;Return to project home page.&lt;/a&gt;</FooterText>
     <ProjectLinkType>Local</ProjectLinkType>
     <SdkLinkType>Index</SdkLinkType>
     <SdkLinkTarget>Blank</SdkLinkTarget>

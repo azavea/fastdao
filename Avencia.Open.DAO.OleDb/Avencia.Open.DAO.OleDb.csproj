@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A510DDB6-F817-4610-B08C-305EB937CE4F}</ProjectGuid>
+    <ProjectGuid>{9B652F15-DF87-470B-A153-8420ABEFA504}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Avencia.Open.DAO</RootNamespace>
-    <AssemblyName>Avencia.Open.DAO</AssemblyName>
+    <RootNamespace>Avencia.Open.DAO.OleDb</RootNamespace>
+    <AssemblyName>Avencia.Open.DAO.OleDb</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
