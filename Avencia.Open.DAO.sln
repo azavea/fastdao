@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avencia.Open.DAO.PostgreSQL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avencia.Open.DAO.SQLite", "Avencia.Open.DAO.SQLite\Avencia.Open.DAO.SQLite.csproj", "{4F21024B-3DC4-4045-AC92-086819BBD660}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avencia.Open.DAO.CSV", "Avencia.Open.DAO.CSV\Avencia.Open.DAO.CSV.csproj", "{D92052E3-B055-47F8-8139-EE206E8DD118}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{4F21024B-3DC4-4045-AC92-086819BBD660}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F21024B-3DC4-4045-AC92-086819BBD660}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F21024B-3DC4-4045-AC92-086819BBD660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D92052E3-B055-47F8-8139-EE206E8DD118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D92052E3-B055-47F8-8139-EE206E8DD118}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D92052E3-B055-47F8-8139-EE206E8DD118}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D92052E3-B055-47F8-8139-EE206E8DD118}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
