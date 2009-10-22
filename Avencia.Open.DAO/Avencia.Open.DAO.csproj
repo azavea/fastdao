@@ -53,7 +53,12 @@
     <Compile Include="Criteria\AbstractSingleValueExpression.cs" />
     <Compile Include="Criteria\BetweenExpression.cs" />
     <Compile Include="Criteria\BitwiseAndExpression.cs" />
+    <Compile Include="Criteria\BooleanOperator.cs" />
     <Compile Include="Criteria\CriteriaExpression.cs" />
+    <Compile Include="Criteria\Joins\JoinSortOrder.cs" />
+    <Compile Include="Criteria\Joins\JoinType.cs" />
+    <Compile Include="Criteria\SortType.cs" />
+    <Compile Include="Criteria\SortOrder.cs" />
     <Compile Include="Criteria\DaoCriteria.cs" />
     <Compile Include="Criteria\EqualsExpression.cs" />
     <Compile Include="Criteria\EqualsInsensitiveExpression.cs" />

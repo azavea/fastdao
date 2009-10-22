@@ -39,6 +39,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Avencia.Open.DAO\Avencia.Open.DAO.csproj">
+      <Project>{A510DDB6-F817-4610-B08C-305EB937CE4F}</Project>
+      <Name>Avencia.Open.DAO</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

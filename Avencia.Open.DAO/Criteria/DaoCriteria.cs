@@ -47,117 +47,20 @@ namespace Avencia.Open.DAO.Criteria
     public class DaoCriteria
     {
         /// <summary>
-        /// On a sort parameter, indicates what order that field should be sorted in.
-        /// </summary>
-        [Serializable]
-        public enum SortType
-        {
-            /// <summary>
-            /// Ascending, numeric (1 - 999) or alphabetic (A - Z) or CompareTo,
-            /// depending on the data type and the class using the SerializableCriteria.
-            /// </summary>
-            Asc,
-            /// <summary>
-            /// Descending, numeric (999 - 1) or alphabetic (Z - A) or CompareTo,
-            /// depending on the data type and the class using the SerializableCriteria.
-            /// </summary>
-            Desc,
-            /// <summary>
-            /// Indicates that this is a computed parameter (such as "Field1 + field2") and
-            /// it should be sorted in whatever the natural order is (up to the class using
-            /// this SerializableCritera to determine).
-            /// </summary>
-            Computed
-        }
-
-        /// <summary>
-        /// A simple class that holds a single sort criterion.
-        /// </summary>
-        [Serializable]
-        public class SortOrder
-        {
-            /// <summary>
-            /// The property to sort on.
-            /// </summary>
-            public string Property;
-            /// <summary>
-            /// The direction to sort based on the Property.
-            /// </summary>
-            public SortType Direction;
-
-            ///<summary>
-            ///
-            ///                    Returns a <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
-            ///                
-            ///</summary>
-            ///
-            ///<returns>
-            ///
-            ///                    A <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
-            ///                
-            ///</returns>
-            ///<filterpriority>2</filterpriority>
-            public override string ToString()
-            {
-                return Property + " " + Direction;
-            }
-        }
-
-        /// <summary>
-        /// Indicates whether the given criteria is an AND or and OR.
-        /// For example:
-        /// Height &gt; 5 OR Width &gt; 5 =
-        /// "Height [MatchType.Greater] 5 [BooleanType.Or]" and
-        /// "Width [Matchtype.Greater] 5 [BooleanType.Or]"
-        /// 
-        /// Height &gt; 5 AND Width &gt; 5 =
-        /// "Height [MatchType.Greater] 5 [BooleanType.AND]" and
-        /// "Width [Matchtype.Greater] 5 [BooleanType.AND]"
-        /// 
-        /// To represent complicated criteria groups such as 
-        /// "Height &gt; 5 AND (Weight &gt; 5 OR Weight == 0)", you need to use
-        /// the CriteriaExpression to nest the OR expression inside another,
-        /// AND criteria:
-        /// SerializableCriteria(heightExp AND SerializableCriteria(weightExp1 OR weightExp2)).
-        /// </summary>
-        [Serializable]
-        public enum BooleanType
-        {
-            /// <summary>
-            /// Indicates both are required.
-            /// </summary>
-            And,
-            /// <summary>
-            /// Indicates either one or the other is required.
-            /// </summary>
-            Or
-        }
-
-        /// <summary>
         /// Whether this is an "AND" criteria or an "OR" criteria.
         /// </summary>
-        public BooleanType BoolType;
+        public BooleanOperator BoolType;
 
         /// <summary>
-        /// This is private so no one can edit the expressions collection directly.
+        /// The individual expressions that make up this criteria.  Defaults to empty.
+        /// Expressions can be added, cleared, etc.
         /// </summary>
-        private readonly List<IExpression> _expressions = new List<IExpression>();
-        /// <summary>
-        /// The individual expressions that make up this criteria, allowing the class using this Criteria
-        /// to know what the criteria are.  Adding expressions should be done with the AddExpression method.
-        /// </summary>
-        public readonly IEnumerable<IExpression> Expressions;
+        public readonly List<IExpression> Expressions = new List<IExpression>();
 
         /// <summary>
-        /// This is private so no one can edit the orders collection directly.
+        /// The list of properties to sort on.  Defaults to empty, you may add, clear, reorder, etc.
         /// </summary>
-        private readonly List<SortOrder> _orders = new List<SortOrder>();
-        /// <summary>
-        /// Returns a list of properties to sort on, allowing the class using this Criteria
-        /// to know what the sort order should be.  Adding sorts should be done with the AddXXXSort
-        /// methods.
-        /// </summary>
-        public readonly IEnumerable<SortOrder> Orders;
+        public readonly List<SortOrder> Orders = new List<SortOrder>();
 
         /// <summary>
         /// Used to limit the data returned, only data rows Start to Start + Limit will be returned.
@@ -174,7 +77,7 @@ namespace Avencia.Open.DAO.Criteria
         /// Constructs a blank criteria, which will return all records unless you customize it.
         /// All expressions added to it will be ANDed together.
         /// </summary>
-        public DaoCriteria() : this(BooleanType.And) {}
+        public DaoCriteria() : this(BooleanOperator.And) {}
 
         /// <summary>
         /// Constructs a blank criteria, which will return all records unless you customize it.
@@ -182,7 +85,7 @@ namespace Avencia.Open.DAO.Criteria
         /// <param name="howToAddExpressions">How expressions will be added together.  Determines
         ///                                   if we do exp1 AND exp2 AND exp3, or if we do
         ///                                   exp1 OR exp2 OR exp3.</param>
-        public DaoCriteria(BooleanType howToAddExpressions)
+        public DaoCriteria(BooleanOperator howToAddExpressions)
             : this(null, howToAddExpressions) {}
 
         /// <summary>
@@ -191,7 +94,7 @@ namespace Avencia.Open.DAO.Criteria
         /// </summary>
         /// <param name="firstExpr">The first expression to add.</param>
         public DaoCriteria(IExpression firstExpr)
-            : this(firstExpr, BooleanType.And) {}
+            : this(firstExpr, BooleanOperator.And) {}
 
         /// <summary>
         /// Constructs a criteria with one expression.
@@ -200,88 +103,13 @@ namespace Avencia.Open.DAO.Criteria
         /// <param name="howToAddExpressions">How expressions will be added together.  Determines
         ///                                   if we do exp1 AND exp2 AND exp3, or if we do
         ///                                   exp1 OR exp2 OR exp3.</param>
-        public DaoCriteria(IExpression firstExpr, BooleanType howToAddExpressions)
+        public DaoCriteria(IExpression firstExpr, BooleanOperator howToAddExpressions)
         {
-            // Set these once here, rather than using Properties, because Properties are actually
-            // function calls and we want this to be fast as possible.
-            Orders = _orders;
-            Expressions = _expressions;
-
             BoolType = howToAddExpressions;
             if (firstExpr != null)
             {
-                _expressions.Add(firstExpr);
+                Expressions.Add(firstExpr);
             }
-        }
-
-        /// <summary>
-        /// Adds any expression to the criteria.
-        /// NOTE: Not all data access layers support all expressions.
-        /// </summary>
-        /// <param name="expr">Anything that implements the IExpression interface.</param>
-        public void AddExpression(IExpression expr)
-        {
-            if (expr == null)
-            {
-                throw new ArgumentNullException("expr", "Cannot add a null expression!");
-            }
-            _expressions.Add(expr);
-        }
-
-        /// <summary>
-        /// Removes all expressions from this SerializableCriteria.
-        /// </summary>
-        public void ClearExpressions()
-        {
-            _expressions.Clear();
-        }
-
-        /// <summary>
-        /// Helper method called by the public AddXXXSort methods.
-        /// </summary>
-        /// <param name="property">Data field to sort on.</param>
-        /// <param name="sortType">How to sort.</param>
-        private void AddSort(string property, SortType sortType)
-        {
-            SortOrder order = new SortOrder();
-            order.Property = property;
-            order.Direction = sortType;
-            _orders.Add(order);
-        }
-
-        /// <summary>
-        /// Adds an ascending sort (see SortType.Asc).
-        /// </summary>
-        /// <param name="property">Data field to sort on.</param>
-        public void AddAscSort(string property)
-        {
-            AddSort(property, SortType.Asc);
-        }
-
-        /// <summary>
-        /// Adds a descending sort (see SortType.Desc).
-        /// </summary>
-        /// <param name="property">Data field to sort on.</param>
-        public void AddDescSort(string property)
-        {
-            AddSort(property, SortType.Desc);
-        }
-
-        /// <summary>
-        /// Adds a sort based on a computed expression (see SortType.Computer).
-        /// </summary>
-        /// <param name="expression">Expression to sort on.</param>
-        public void AddComputedSort(string expression)
-        {
-            AddSort(expression, SortType.Computed);
-        }
-
-        /// <summary>
-        /// Removes all existing sort orders.
-        /// </summary>
-        public void ClearSortOrder()
-        {
-            _orders.Clear();
         }
 
         /// <summary>
@@ -289,9 +117,9 @@ namespace Avencia.Open.DAO.Criteria
         /// </summary>
         public void Clear()
         {
-            BoolType = BooleanType.And;
-            _expressions.Clear();
-            _orders.Clear();
+            BoolType = BooleanOperator.And;
+            Expressions.Clear();
+            Orders.Clear();
             Start = -1;
             Limit = -1;
         }
@@ -310,10 +138,10 @@ namespace Avencia.Open.DAO.Criteria
             else
             {
                 BoolType = other.BoolType;
-                _expressions.Clear();
-                _expressions.AddRange(other.Expressions);
-                _orders.Clear();
-                _orders.AddRange(other.Orders);
+                Expressions.Clear();
+                Expressions.AddRange(other.Expressions);
+                Orders.Clear();
+                Orders.AddRange(other.Orders);
                 Start = other.Start;
                 Limit = other.Limit;
             }
