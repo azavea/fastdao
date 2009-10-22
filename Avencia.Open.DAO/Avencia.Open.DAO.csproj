@@ -31,13 +31,59 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GeoAPI, Version=1.1.0.0, Culture=neutral, PublicKeyToken=a1a0da7def465678, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\GeoAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Criteria\AbstractExpression.cs" />
+    <Compile Include="Criteria\AbstractSinglePropertyExpression.cs" />
+    <Compile Include="Criteria\AbstractSingleValueExpression.cs" />
+    <Compile Include="Criteria\BetweenExpression.cs" />
+    <Compile Include="Criteria\BitwiseAndExpression.cs" />
+    <Compile Include="Criteria\CriteriaExpression.cs" />
+    <Compile Include="Criteria\DaoCriteria.cs" />
+    <Compile Include="Criteria\EqualsExpression.cs" />
+    <Compile Include="Criteria\EqualsInsensitiveExpression.cs" />
+    <Compile Include="Criteria\GreaterExpression.cs" />
+    <Compile Include="Criteria\HandWrittenExpression.cs" />
+    <Compile Include="Criteria\IExpression.cs" />
+    <Compile Include="Criteria\LikeInsensitiveExpression.cs" />
+    <Compile Include="Criteria\Joins\AbstractJoinExpression.cs" />
+    <Compile Include="Criteria\Joins\EqualsJoinExpression.cs" />
+    <Compile Include="Criteria\Joins\GreaterJoinExpression.cs" />
+    <Compile Include="Criteria\Joins\IJoinExpression.cs" />
+    <Compile Include="Criteria\Joins\DaoJoinCriteria.cs" />
+    <Compile Include="Criteria\Joins\LesserJoinExpression.cs" />
+    <Compile Include="Criteria\Joins\AbstractOnePropertyEachJoinExpression.cs" />
+    <Compile Include="Criteria\LesserExpression.cs" />
+    <Compile Include="Criteria\LikeExpression.cs" />
+    <Compile Include="Criteria\PropertyInListExpression.cs" />
+    <Compile Include="Criteria\Spatial\ContainsExpression.cs" />
+    <Compile Include="Criteria\Spatial\AbstractDistanceExpression.cs" />
+    <Compile Include="Criteria\Spatial\AbstractDistanceSphereExpression.cs" />
+    <Compile Include="Criteria\Spatial\GreaterDistanceExpression.cs" />
+    <Compile Include="Criteria\Spatial\GreaterDistanceSphereExpression.cs" />
+    <Compile Include="Criteria\Spatial\IntersectsExpression.cs" />
+    <Compile Include="Criteria\Spatial\LesserDistanceExpression.cs" />
+    <Compile Include="Criteria\Spatial\LesserDistanceSphereExpression.cs" />
+    <Compile Include="Criteria\Spatial\AbstractSingleShapeExpression.cs" />
+    <Compile Include="Criteria\Spatial\WithinExpression.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Avencia.Open.Common\Avencia.Open.Common.csproj">
+      <Project>{ADBFE412-4F06-454A-AAF5-E93719E3B1FD}</Project>
+      <Name>Avencia.Open.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />
