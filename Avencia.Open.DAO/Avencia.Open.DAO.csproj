@@ -60,14 +60,14 @@
     <Compile Include="Criteria\SortType.cs" />
     <Compile Include="Criteria\SortOrder.cs" />
     <Compile Include="Criteria\DaoCriteria.cs" />
-    <Compile Include="Criteria\EqualsExpression.cs" />
-    <Compile Include="Criteria\EqualsInsensitiveExpression.cs" />
+    <Compile Include="Criteria\EqualExpression.cs" />
+    <Compile Include="Criteria\EqualInsensitiveExpression.cs" />
     <Compile Include="Criteria\GreaterExpression.cs" />
     <Compile Include="Criteria\HandWrittenExpression.cs" />
     <Compile Include="Criteria\IExpression.cs" />
     <Compile Include="Criteria\LikeInsensitiveExpression.cs" />
     <Compile Include="Criteria\Joins\AbstractJoinExpression.cs" />
-    <Compile Include="Criteria\Joins\EqualsJoinExpression.cs" />
+    <Compile Include="Criteria\Joins\EqualJoinExpression.cs" />
     <Compile Include="Criteria\Joins\GreaterJoinExpression.cs" />
     <Compile Include="Criteria\Joins\IJoinExpression.cs" />
     <Compile Include="Criteria\Joins\DaoJoinCriteria.cs" />

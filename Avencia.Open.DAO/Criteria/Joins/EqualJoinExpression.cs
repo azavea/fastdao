@@ -29,7 +29,7 @@ namespace Avencia.Open.DAO.Criteria.Joins
     /// LeftProperty == RightProperty.  Does not accept wild cards.
     /// </summary>
     [Serializable]
-    public class EqualsJoinExpression : AbstractOnePropertyEachJoinExpression
+    public class EqualJoinExpression : AbstractOnePropertyEachJoinExpression
     {
         /// <summary>
         /// LeftProperty == RightProperty.  Does not accept wild cards.
@@ -38,7 +38,7 @@ namespace Avencia.Open.DAO.Criteria.Joins
         ///                            left DAO that we are comparing.</param>
         /// <param name="rightProperty">The name of the property on the object returned by the
         ///                             right DAO that we are comparing.</param>
-        public EqualsJoinExpression(string leftProperty, string rightProperty)
+        public EqualJoinExpression(string leftProperty, string rightProperty)
             : this(leftProperty, rightProperty, true) { }
         /// <summary>
         /// LeftProperty == RightProperty.  Does not accept wild cards.
@@ -49,7 +49,7 @@ namespace Avencia.Open.DAO.Criteria.Joins
         ///                             right DAO that we are comparing.</param>
         /// <param name="trueOrNot">True means look for matches (I.E. ==),
         ///                         false means look for non-matches (I.E. !=)</param>
-        public EqualsJoinExpression(string leftProperty,
+        public EqualJoinExpression(string leftProperty,
                                    string rightProperty, bool trueOrNot)
             : base(leftProperty, rightProperty, trueOrNot) { }
 
@@ -61,7 +61,7 @@ namespace Avencia.Open.DAO.Criteria.Joins
         /// <returns>The inverse of this expression.</returns>
         public override IExpression Invert()
         {
-            return new EqualsJoinExpression(LeftProperty, RightProperty, !_trueOrNot);
+            return new EqualJoinExpression(LeftProperty, RightProperty, !_trueOrNot);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Avencia.Open.DAO.Criteria.Joins
         /// <returns>A copy of this expression with the left and right orientation swapped.</returns>
         public override IJoinExpression Flip()
         {
-            return new EqualsJoinExpression(RightProperty, LeftProperty, _trueOrNot);
+            return new EqualJoinExpression(RightProperty, LeftProperty, _trueOrNot);
         }
     }
 }

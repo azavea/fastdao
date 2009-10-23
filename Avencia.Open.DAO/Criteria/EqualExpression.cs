@@ -26,30 +26,29 @@ using System;
 namespace Avencia.Open.DAO.Criteria
 {
     /// <summary>
-    /// Same as equals, but will do a case-insensitve comparison ("A" == "a").
-    /// Note that in some data sources, equals may already be case-insensitive.
+    /// Property == Value.  Does not accept wild cards.
     /// </summary>
     [Serializable]
-    public class EqualsInsensitiveExpression : AbstractSingleValueExpression
+    public class EqualExpression : AbstractSingleValueExpression
     {
         /// <summary>
-        /// Property == PropertyValue, case-insensitively.  Does not accept wild cards.
+        /// Property == PropertyValue.  Does not accept wild cards.
         /// </summary>
         /// <param name="property">The data class' property/field being compared.
         ///                        May not be null.</param>
         /// <param name="value">The value to check for.  May be null (to check if the field is null).</param>
-        public EqualsInsensitiveExpression(string property, object value)
-            : this(property, value, true) { }
+        public EqualExpression(string property, object value)
+            : this(property, value, true) {}
         /// <summary>
-        /// Property == PropertyValue, case-insensitively.  Does not accept wild cards.
+        /// Property == PropertyValue.  Does not accept wild cards.
         /// </summary>
         /// <param name="property">The data class' property/field being compared.
         ///                        May not be null.</param>
         /// <param name="value">The value to check for.  May be null (to check if the field is null).</param>
         /// <param name="trueOrNot">True means look for matches (I.E. ==),
         ///                         false means look for non-matches (I.E. !=)</param>
-        public EqualsInsensitiveExpression(string property, object value, bool trueOrNot)
-            : base(property, value, true, trueOrNot) { }
+        public EqualExpression(string property, object value, bool trueOrNot)
+            : base(property, value, true, trueOrNot) {}
 
         /// <summary>
         /// Produces an expression that is the exact opposite of this expression.
@@ -59,7 +58,7 @@ namespace Avencia.Open.DAO.Criteria
         /// <returns>The inverse of this expression.</returns>
         public override IExpression Invert()
         {
-            return new EqualsInsensitiveExpression(Property, Value, !_trueOrNot);
+            return new EqualExpression(Property, Value, !_trueOrNot);
         }
     }
 }

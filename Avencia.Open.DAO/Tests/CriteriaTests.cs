@@ -76,7 +76,7 @@ namespace Avencia.Open.DAO.Tests
             Assert.AreEqual(1, new List<IExpression>(sc.Expressions).Count, "Added a blank sub-expr.");
             sc.Clear();
             DaoCriteria sub1 = new DaoCriteria();
-            sub1.Expressions.Add(new EqualsExpression("x", 5, true));
+            sub1.Expressions.Add(new EqualExpression("x", 5, true));
             sub1.Expressions.Add(new BetweenExpression("y", 1, 4, true));
             Assert.AreEqual(2, new List<IExpression>(sub1.Expressions).Count, "Sub-expr didn't have 2 exprs.");
             sc.Expressions.Add(new CriteriaExpression(sub1, true));
@@ -89,7 +89,7 @@ namespace Avencia.Open.DAO.Tests
         {
             DaoCriteria sc = new DaoCriteria();
             sc.Orders.Add(new SortOrder("X", SortType.Asc));
-            sc.Expressions.Add(new EqualsExpression("X", "1", true));
+            sc.Expressions.Add(new EqualExpression("X", "1", true));
 
             try
             {
