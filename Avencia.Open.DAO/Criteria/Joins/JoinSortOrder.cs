@@ -37,6 +37,15 @@ namespace Avencia.Open.DAO.Criteria.Joins
 
         /// <summary>
         /// A simple class that holds a sort criterion for a property from the right or left DAO.
+        /// This constructor creates an "ascending" sort order.
+        /// </summary>
+        /// <param name="property">The data class' property to sort on.</param>
+        /// <param name="isForLeftDao">If true, the property we're sorting on comes from the left
+        ///                            DAO.  If false, it comes from the right DAO.</param>
+        public JoinSortOrder(string property, bool isForLeftDao)
+            : this(property, SortType.Asc, isForLeftDao) { }
+        /// <summary>
+        /// A simple class that holds a sort criterion for a property from the right or left DAO.
         /// </summary>
         /// <param name="property">The data class' property to sort on.</param>
         /// <param name="direction">The direction to sort based on the Property.</param>

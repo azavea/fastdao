@@ -42,6 +42,13 @@ namespace Avencia.Open.DAO.Criteria
 
         /// <summary>
         /// A simple class that holds a single sort criterion.
+        /// This constructor constructs one with an "ascending" sort.
+        /// </summary>
+        /// <param name="property">The data class' property to sort on.</param>
+        public SortOrder(string property) : this(property, SortType.Asc) { }
+
+        /// <summary>
+        /// A simple class that holds a single sort criterion.
         /// </summary>
         /// <param name="property">The data class' property to sort on.</param>
         /// <param name="direction">The direction to sort based on the Property.</param>
