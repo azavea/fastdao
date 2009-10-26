@@ -33,18 +33,18 @@ namespace Avencia.Open.DAO.Criteria
     {
         /// <summary>
         /// Ascending, numeric (1 - 999) or alphabetic (A - Z) or CompareTo,
-        /// depending on the data type and the class using the SerializableCriteria.
+        /// depending on the data type and the class using the DaoCriteria.
         /// </summary>
         Asc,
         /// <summary>
         /// Descending, numeric (999 - 1) or alphabetic (Z - A) or CompareTo,
-        /// depending on the data type and the class using the SerializableCriteria.
+        /// depending on the data type and the class using the DaoCriteria.
         /// </summary>
         Desc,
         /// <summary>
         /// Indicates that this is a computed parameter (such as "Field1 + field2") and
         /// it should be sorted in whatever the natural order is (up to the class using
-        /// this SerializableCritera to determine).
+        /// this DaoCriteria to determine).
         /// </summary>
         Computed
     }

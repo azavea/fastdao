@@ -40,7 +40,7 @@ namespace Avencia.Open.DAO.Criteria
     /// Orders are considered in the order they are added, I.E. results will be sorted
     /// first by the first order, then the second, etc.
     /// 
-    /// Not every consumer of SerializableCriteria is required to support every combination of
+    /// Not every consumer of DaoCriteria is required to support every combination of
     /// expressions, is it up to the consumer to throw NotSupportedExceptions.
     /// </summary>
     [Serializable]
@@ -125,7 +125,7 @@ namespace Avencia.Open.DAO.Criteria
         }
 
         /// <summary>
-        /// Makes this SerializableCriteria into a copy of the other one.  Any existing
+        /// Makes this DaoCriteria into a copy of the other one.  Any existing
         /// orders, expressions, etc. on this one are lost.
         /// </summary>
         /// <param name="other">Criteria to copy everything from.</param>
