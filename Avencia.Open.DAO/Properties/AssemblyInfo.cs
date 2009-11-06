@@ -13,6 +13,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © Avencia 2009")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+// Configure log4net using the .config file
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
