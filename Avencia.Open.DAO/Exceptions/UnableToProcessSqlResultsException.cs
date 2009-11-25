@@ -20,7 +20,7 @@ namespace Avencia.Open.DAO.Exceptions
         public UnableToProcessSqlResultsException(ConnectionDescriptor desc, string sql,
                                                   IEnumerable sqlParams, Exception e)
             : base("Exception while processing results from SQL statement: " +
-                   SQLUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)
+                   SqlUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)
         {
         }
 
@@ -35,7 +35,7 @@ namespace Avencia.Open.DAO.Exceptions
         public UnableToProcessSqlResultsException(string message, ConnectionDescriptor desc, string sql,
                                                   IEnumerable sqlParams, Exception e)
             : base(message + " " +
-                   SQLUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)
+                   SqlUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)
         {
         }
     }

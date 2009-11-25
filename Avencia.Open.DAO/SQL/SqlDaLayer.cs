@@ -81,13 +81,13 @@ namespace Avencia.Open.DAO.SQL
             List<object> sqlParams = DbCaches.ObjectLists.Get();
 
             PreProcessPropertyValues(mapping.Table, propValues);
-            string sql = SQLUtilities.MakeInsertStatement(mapping.Table, propValues, sqlParams);
+            string sql = SqlUtilities.MakeInsertStatement(mapping.Table, propValues, sqlParams);
             int numRecs = SqlConnectionUtilities.XSafeCommand(_connDesc, sql, sqlParams);
 
             if (numRecs != 1)
             {
                 throw new Exception("Should have inserted one record, but sql command returned " +
-                                    numRecs + " rows affected. SQL: " + SQLUtilities.SqlParamsToString(sql, sqlParams));
+                                    numRecs + " rows affected. SQL: " + SqlUtilities.SqlParamsToString(sql, sqlParams));
             }
 
             DbCaches.ObjectLists.Return(sqlParams);
@@ -106,7 +106,7 @@ namespace Avencia.Open.DAO.SQL
                 List<object> sqlParams = DbCaches.ObjectLists.Get();
 
                 PreProcessPropertyValues(mapping.Table, propValues);
-                string sql = SQLUtilities.MakeInsertStatement(mapping.Table, propValues, sqlParams);
+                string sql = SqlUtilities.MakeInsertStatement(mapping.Table, propValues, sqlParams);
 
                 sqls.Add(sql);
                 sqlParamLists.Add(sqlParams);

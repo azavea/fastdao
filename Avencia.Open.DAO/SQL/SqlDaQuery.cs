@@ -36,7 +36,7 @@ namespace Avencia.Open.DAO.SQL
         ///<filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return SQLUtilities.SqlParamsToString(Sql.ToString(), Params);
+            return SqlUtilities.SqlParamsToString(Sql.ToString(), Params);
         }
     }
 }

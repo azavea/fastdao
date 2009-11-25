@@ -9,10 +9,10 @@ namespace Avencia.Open.DAO.SQL
     /// <summary>
     /// This class holds static utility methods having to do with constructing SQL statements
     /// (typically statements that would then be used with the SqlConnectionUtilities class).
-    /// 
+    ///  
     /// This class is stateless and thus is threadsafe.
     /// </summary>
-    public static class SQLUtilities
+    public static class SqlUtilities
     {
         /// <summary>
         /// Converts the sql statement and parameters into a nicely formatted

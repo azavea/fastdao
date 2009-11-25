@@ -446,7 +446,7 @@ namespace Avencia.Open.DAO.SQL
                             } 
                             else 
                             {
-                                _log.Warn("Caught exception while executing sql '" + SQLUtilities.SqlParamsToString(sql, sqlParams) + "'.", e);
+                                _log.Warn("Caught exception while executing sql '" + SqlUtilities.SqlParamsToString(sql, sqlParams) + "'.", e);
                                 numErrors++;
                                 if (numErrors == sqls.Count) 
                                 {
@@ -623,7 +623,7 @@ namespace Avencia.Open.DAO.SQL
                                 else
                                 {
                                     _log.Warn("Caught exception while executing sql statement: " +
-                                              SQLUtilities.SqlParamsToString(sql, sqlParams) + " as part of batch.", e);
+                                              SqlUtilities.SqlParamsToString(sql, sqlParams) + " as part of batch.", e);
                                     sqlErrors++;
                                     reader = null;
                                     if (sqlErrors == sqls.Count)
@@ -645,7 +645,7 @@ namespace Avencia.Open.DAO.SQL
                             catch (Exception e)
                             {
                                 _log.Warn("Caught exception while invoking delegate. SQL: " +
-                                          SQLUtilities.SqlParamsToString(sql, sqlParams), e);
+                                          SqlUtilities.SqlParamsToString(sql, sqlParams), e);
                                 delegateErrors++;
                                 if (delegateErrors == sqls.Count)
                                 {
@@ -1062,7 +1062,7 @@ namespace Avencia.Open.DAO.SQL
             catch (Exception e)
             {
                 _log.Warn("Unable to set parameters on sql command, " +
-                          SQLUtilities.SqlParamsToString(sql, sqlParams), e);
+                          SqlUtilities.SqlParamsToString(sql, sqlParams), e);
                 throw new ApplicationException("Bad parameters for sql statement.", e);
             }
         }
