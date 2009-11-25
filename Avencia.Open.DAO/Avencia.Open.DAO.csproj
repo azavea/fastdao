@@ -117,6 +117,7 @@
     <Compile Include="SQL\SqlClauseWithValue.cs" />
     <Compile Include="SQL\DbConnectionCache.cs" />
     <Compile Include="SQL\AbstractSqlConnectionDescriptor.cs" />
+    <Compile Include="Tests\SqlUtilTests.cs" />
     <Compile Include="Util\DataReaderDelegate.cs" />
     <Compile Include="Tests\CriteriaTests.cs" />
     <Compile Include="Util\CachingDataReader.cs" />
