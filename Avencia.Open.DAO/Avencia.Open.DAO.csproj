@@ -50,6 +50,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClassMapping.cs" />
+    <Compile Include="ConnectionDescriptor.cs" />
+    <Compile Include="DaJoinDelegate.cs" />
+    <Compile Include="Exceptions\BadConnectionTypeException.cs" />
+    <Compile Include="Exceptions\UnableToConstructSqlException.cs" />
+    <Compile Include="Exceptions\ExceptionWithConnectionInfo.cs" />
+    <Compile Include="Exceptions\DaoTypeCoercionException.cs" />
+    <Compile Include="Exceptions\DaoUnsupportedTypeCoercionException.cs" />
+    <Compile Include="Exceptions\UnableToConnectException.cs" />
+    <Compile Include="Exceptions\UnableToProcessSqlResultsException.cs" />
+    <Compile Include="Exceptions\UnableToRunSqlException.cs" />
+    <Compile Include="DaLayer.cs" />
+    <Compile Include="GeneratorType.cs" />
+    <Compile Include="IDaLayer.cs" />
     <Compile Include="Criteria\AbstractExpression.cs" />
     <Compile Include="Criteria\AbstractSinglePropertyExpression.cs" />
     <Compile Include="Criteria\AbstractSingleValueExpression.cs" />
@@ -88,8 +102,28 @@
     <Compile Include="Criteria\Spatial\LesserDistanceSphereExpression.cs" />
     <Compile Include="Criteria\Spatial\AbstractSingleShapeExpression.cs" />
     <Compile Include="Criteria\Spatial\WithinExpression.cs" />
+    <Compile Include="Exceptions\BadDaoConfigurationException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IDaQuery.cs" />
+    <Compile Include="IDaJoinableLayer.cs" />
+    <Compile Include="IDaJoinQuery.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SQL\DbCommandCache.cs" />
+    <Compile Include="SQL\SqlDaJoinQuery.cs" />
+    <Compile Include="SQL\SqlDaQuery.cs" />
+    <Compile Include="SQL\SqlDaJoinableLayer.cs" />
+    <Compile Include="SQL\SqlDaLayer.cs" />
+    <Compile Include="SQL\SqlClauseWithValue.cs" />
+    <Compile Include="SQL\DbConnectionCache.cs" />
+    <Compile Include="SQL\SqlConnectionDescriptor.cs" />
+    <Compile Include="Util\DataReaderDelegate.cs" />
     <Compile Include="Tests\CriteriaTests.cs" />
+    <Compile Include="Util\CachingDataReader.cs" />
+    <Compile Include="SQL\SqlConnectionUtilities.cs" />
+    <Compile Include="Util\DbCaches.cs" />
+    <Compile Include="SQL\SqlUtilities.cs" />
+    <Compile Include="Util\ParamNameCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Avencia.Open.Common\Avencia.Open.Common.csproj">
