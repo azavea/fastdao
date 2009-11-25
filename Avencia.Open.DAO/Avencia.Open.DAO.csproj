@@ -61,7 +61,7 @@
     <Compile Include="Exceptions\UnableToConnectException.cs" />
     <Compile Include="Exceptions\UnableToProcessSqlResultsException.cs" />
     <Compile Include="Exceptions\UnableToRunSqlException.cs" />
-    <Compile Include="DaLayer.cs" />
+    <Compile Include="AbstractDaLayer.cs" />
     <Compile Include="GeneratorType.cs" />
     <Compile Include="IDaLayer.cs" />
     <Compile Include="Criteria\AbstractExpression.cs" />
@@ -116,7 +116,7 @@
     <Compile Include="SQL\SqlDaLayer.cs" />
     <Compile Include="SQL\SqlClauseWithValue.cs" />
     <Compile Include="SQL\DbConnectionCache.cs" />
-    <Compile Include="SQL\SqlConnectionDescriptor.cs" />
+    <Compile Include="SQL\AbstractSqlConnectionDescriptor.cs" />
     <Compile Include="Util\DataReaderDelegate.cs" />
     <Compile Include="Tests\CriteriaTests.cs" />
     <Compile Include="Util\CachingDataReader.cs" />
