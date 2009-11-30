@@ -85,10 +85,13 @@ namespace Avencia.Open.DAO
             }
             else
             {
-                // Not overridden, read from this section.
+                // Not overridden, read from this config section.
                 // For backwards compatibility, default to using an OleDb descriptor.
                 string typeName = cfg.GetParameterWithDefault(section, "DescriptorClass",
-                    "Avencia.Open.DAO.OleDb.OleDbDescriptor,Avencia.Open.DAO.OleDb");
+                    // TODO: Temporarily using the 'internal' avencia class until we can finish moving it to open source.
+                    "Avencia.Database.OleDbDescriptor,Avencia.Database");
+                    // TODO: Should really be: 
+                    //"Avencia.Open.DAO.OleDb.OleDbDescriptor,Avencia.Open.DAO.OleDb");
                 Type[] paramTypes = new [] {typeof (Config), typeof (string)};
                 Type descType = Type.GetType(typeName);
                 if (descType == null)
