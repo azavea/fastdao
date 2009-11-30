@@ -21,6 +21,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using Avencia.Open.DAO.SQL;
 using NUnit.Framework;
@@ -104,5 +105,65 @@ namespace Avencia.Open.DAO.Tests
                 "Didn't assemble delete statement with params.");
             Assert.AreEqual(0, parms.Count, "Wrong number of sql parameters generated for null.");
         }
+
+        /// <exclude/>
+        // Here are examples of the performance when we last ran it:
+        //time to convert Simple: 00:00:00.0781250 (attempt 1)
+        //time to convert 5: 00:00:00.0781250 (attempt 1)
+        //time to convert 5: 00:00:00.1406250 (attempt 1)
+        //time to convert 5: 00:00:00.1562500 (attempt 1)
+        //time to convert 5: 00:00:00.1406250 (attempt 2)
+        //time to convert 5: 00:00:00.0781250 (attempt 1)
+        //time to convert 2 NOV 2007: 00:00:01.8437500 (attempt 1)
+        //time to convert 11:35 AM Nov 2 2007: 00:00:02.1093750 (attempt 1)
+        //time to convert SEQUENCE: 00:00:00.9218750 (attempt 1)
+        //time to convert 1: 00:00:00.1875000 (attempt 1)
+        [Ignore("Performance tests are too unstable to have as automated unit tests.")]
+        [Test]
+        public void TestTypePerformance()
+        {
+            // Note: Due to subspace field harmonics, this test will occasionally fail due to
+            // something taking a half second longer than it should.  Only worry about it if it beings
+            // failing consistently.
+            int loopCount = 1000000;
+            AssertPerformance("Simple", typeof(string), loopCount, new TimeSpan(0, 0, 0, 0, 200));
+            AssertPerformance(5, typeof(int), loopCount, new TimeSpan(0, 0, 0, 0, 150));
+            AssertPerformance(5.0, typeof(int), loopCount, new TimeSpan(0, 0, 0, 0, 150));
+            AssertPerformance(5, typeof(double), loopCount, new TimeSpan(0, 0, 0, 0, 150));
+            AssertPerformance(5.0, typeof(double), loopCount, new TimeSpan(0, 0, 0, 0, 150));
+            AssertPerformance("2 NOV 2007", typeof(DateTime), loopCount, new TimeSpan(0, 0, 0, 2, 0));
+            AssertPerformance("11:35 AM Nov 2 2007", typeof(DateTime), loopCount, new TimeSpan(0, 0, 0, 2, 500));
+            AssertPerformance("SEQUENCE", typeof(GeneratorType), loopCount, new TimeSpan(0, 0, 0, 1, 200));
+            AssertPerformance(1, typeof(GeneratorType), loopCount, new TimeSpan(0, 0, 0, 0, 200));
+        }
+        private static void AssertPerformance(object input, Type desiredType, int loopCount, TimeSpan max)
+        {
+            int retryCount = 3;
+            DateTime startMine;
+            DateTime endMine;
+            do
+            {
+                SqlDaLayer coercer = new SqlDaLayer(null, true);
+                startMine = DateTime.Now;
+                for (int x = 0; x < loopCount; x++)
+                {
+                    coercer.CoerceType(desiredType, input);
+                }
+                endMine = DateTime.Now;
+                Console.WriteLine("time to convert " + input + ": " + (endMine - startMine) + " (attempt " + (4 - retryCount) + ")");
+                // Since this test randomly fails, retry a couple times before giving up.
+                if (endMine - startMine < max)
+                {
+                    retryCount = 0;
+                }
+                else
+                {
+                    retryCount--;
+                }
+            } while (retryCount > 0);
+            Assert.Less(endMine - startMine, max, "took too long!  Input: " +
+                input + ", type: " + desiredType);
+        }
+
     }
 }
