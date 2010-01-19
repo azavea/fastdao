@@ -44,7 +44,7 @@ namespace Avencia.Open.DAO
         bool CanJoin<R>(DaoJoinCriteria crit, ConnectionDescriptor rightConn, ClassMapping rightMapping) where R : new();
 
         /// <summary>
-        /// This is not garaunteed to succeed unless CanJoin(crit, rightDao) returns true.
+        /// This is not guaranteed to succeed unless CanJoin(crit, rightDao) returns true.
         /// </summary>
         /// <param name="crit">The criteria specifying the requested join.</param>
         /// <param name="leftMapping">Class mapping for the left table we're querying against.</param>
