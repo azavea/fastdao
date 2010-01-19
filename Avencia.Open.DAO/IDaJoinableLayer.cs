@@ -51,5 +51,17 @@ namespace Avencia.Open.DAO
         /// <param name="rightMapping">Class mapping for the right table we're querying against.</param>
         IDaJoinQuery CreateJoinQuery(DaoJoinCriteria crit, ClassMapping leftMapping,
                                           ClassMapping rightMapping);
+
+        /// <summary>
+        /// This performs a count instead of an actual query.  Depending on the data access layer
+        /// implementation, this may or may not be significantly faster than actually executing
+        /// the normal query and seeing how many results you get back.  Generally it should be
+        /// faster.
+        /// </summary>
+        /// <param name="crit">The criteria specifying the requested join.</param>
+        /// <param name="leftMapping">Class mapping for the left table we're querying against.</param>
+        /// <param name="rightMapping">Class mapping for the right table we're querying against.</param>
+        /// <returns>The number of results that you would get if you ran the actual query.</returns>
+        int GetCount(DaoJoinCriteria crit, ClassMapping leftMapping, ClassMapping rightMapping);
     }
 }

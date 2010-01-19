@@ -160,57 +160,11 @@ namespace Avencia.Open.DAO.SQL
                         .Append(_connDesc.ColumnAliasSuffix());
                 }
             }
-            retVal.Sql.Append(" FROM ").Append(leftMapping.Table).Append(" ")
-                .Append(_connDesc.TableAliasPrefix()).Append(leftAlias)
-                .Append(_connDesc.TableAliasSuffix());
-            switch (crit.TypeOfJoin)
-            {
-                case JoinType.Inner:
-                    retVal.Sql.Append(" INNER JOIN ");
-                    break;
-                case JoinType.LeftOuter:
-                    retVal.Sql.Append(" LEFT JOIN ");
-                    break;
-                case JoinType.RightOuter:
-                    retVal.Sql.Append(" RIGHT JOIN ");
-                    break;
-                case JoinType.Outer:
-                    retVal.Sql.Append(" ").Append(_connDesc.FullOuterJoinKeyword()).Append(" ");
-                    break;
-                default:
-                    throw new NotSupportedException("Join type " + crit.TypeOfJoin +
-                                                    " is not yet supported.");
-            }
-            retVal.Sql.Append(rightMapping.Table).Append(" ")
-                .Append(_connDesc.TableAliasPrefix()).Append(rightAlias)
-                .Append(_connDesc.TableAliasSuffix());
-            if (crit.Expressions.Count > 0)
-            {
-                retVal.Sql.Append(" ON ");
-                JoinExpressionListToQuery(retVal, crit.BoolType, crit.Expressions,
-                                          leftMapping, rightMapping, leftPrefix, rightPrefix);
-            }
-            bool addedWhere = false;
-            if ((crit.LeftCriteria != null) && (crit.LeftCriteria.Expressions.Count > 0))
-            {
-                retVal.Sql.Append(" WHERE ");
-                addedWhere = true;
-                ExpressionListToQuery(retVal, crit.LeftCriteria.BoolType,
-                                      crit.LeftCriteria.Expressions, leftMapping, leftPrefix);
-            }
-            if ((crit.RightCriteria != null) && (crit.RightCriteria.Expressions.Count > 0))
-            {
-                if (addedWhere)
-                {
-                    retVal.Sql.Append(" AND ");
-                }
-                else
-                {
-                    retVal.Sql.Append(" WHERE ");
-                }
-                ExpressionListToQuery(retVal, crit.RightCriteria.BoolType,
-                                      crit.RightCriteria.Expressions, rightMapping, rightPrefix);
-            }
+            retVal.Sql.Append(" FROM ");
+            
+            TablesToQuery(retVal, crit, leftAlias, rightAlias, leftMapping, rightMapping);
+            JoinExpressionsToQuery(retVal, crit, leftPrefix, rightPrefix, leftMapping, rightMapping);
+
             if (crit.Orders.Count > 0)
             {
                 retVal.Sql.Append(" ORDER BY ");
@@ -219,6 +173,122 @@ namespace Avencia.Open.DAO.SQL
 
             // Don't return the objects to the caches, we'll do that in DisposeOfQuery.
             return retVal;
+        }
+
+        /// <summary>
+        /// This performs a count instead of an actual query.  Depending on the data access layer
+        /// implementation, this may or may not be significantly faster than actually executing
+        /// the normal query and seeing how many results you get back.  Generally it should be
+        /// faster.
+        /// </summary>
+        /// <param name="crit">The criteria specifying the requested join.</param>
+        /// <param name="leftMapping">Class mapping for the left table we're querying against.</param>
+        /// <param name="rightMapping">Class mapping for the right table we're querying against.</param>
+        /// <returns>The number of results that you would get if you ran the actual query.</returns>
+        public int GetCount(DaoJoinCriteria crit, ClassMapping leftMapping, ClassMapping rightMapping)
+        {
+            if (crit == null)
+            {
+                throw new ArgumentNullException("crit",
+                                                "Unlike regular gets, you cannot perform a join with a null criteria.  At minimum you must create one and specify the join type.");
+            }
+            string leftAlias = "L_" + Shorten(leftMapping.Table);
+            string leftPrefix = leftAlias + ".";
+            string rightAlias = "R_" + Shorten(rightMapping.Table);
+            string rightPrefix = rightAlias + ".";
+
+            SqlDaJoinQuery query = _sqlJoinQueryCache.Get();
+
+            query.Sql.Append("SELECT COUNT(*) FROM ");
+
+            TablesToQuery(query, crit, leftAlias, rightAlias, leftMapping, rightMapping);
+            JoinExpressionsToQuery(query, crit, leftPrefix, rightPrefix, leftMapping, rightMapping);
+
+            int retVal = SqlConnectionUtilities.XSafeIntQuery(_connDesc, query.Sql.ToString(), query.Params);
+
+            DisposeOfQuery(query);
+            return retVal;
+        }
+
+        /// <summary>
+        /// Append all the join expressions ("ON blah = blah WHERE a.blah = 5 AND b.blah = 10" etc)
+        /// to the query.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="crit"></param>
+        /// <param name="leftPrefix"></param>
+        /// <param name="rightPrefix"></param>
+        /// <param name="leftMapping"></param>
+        /// <param name="rightMapping"></param>
+        private void JoinExpressionsToQuery(SqlDaJoinQuery query, DaoJoinCriteria crit, string leftPrefix, string rightPrefix,
+            ClassMapping leftMapping, ClassMapping rightMapping)
+        {
+
+            if (crit.Expressions.Count > 0)
+            {
+                query.Sql.Append(" ON ");
+                JoinExpressionListToQuery(query, crit.BoolType, crit.Expressions,
+                                          leftMapping, rightMapping, leftPrefix, rightPrefix);
+            }
+            bool addedWhere = false;
+            if ((crit.LeftCriteria != null) && (crit.LeftCriteria.Expressions.Count > 0))
+            {
+                query.Sql.Append(" WHERE ");
+                addedWhere = true;
+                ExpressionListToQuery(query, crit.LeftCriteria.BoolType,
+                                      crit.LeftCriteria.Expressions, leftMapping, leftPrefix);
+            }
+            if ((crit.RightCriteria != null) && (crit.RightCriteria.Expressions.Count > 0))
+            {
+                if (addedWhere)
+                {
+                    query.Sql.Append(" AND ");
+                }
+                else
+                {
+                    query.Sql.Append(" WHERE ");
+                }
+                ExpressionListToQuery(query, crit.RightCriteria.BoolType,
+                                      crit.RightCriteria.Expressions, rightMapping, rightPrefix);
+            }
+        }
+
+        /// <summary>
+        /// Append the names of the tables ("BlahTable as left, FooTable as right") to the query.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="crit"></param>
+        /// <param name="leftAlias"></param>
+        /// <param name="rightAlias"></param>
+        /// <param name="leftMapping"></param>
+        /// <param name="rightMapping"></param>
+        private void TablesToQuery(SqlDaJoinQuery query, DaoJoinCriteria crit, string leftAlias, string rightAlias,
+            ClassMapping leftMapping, ClassMapping rightMapping)
+        {
+            query.Sql.Append(leftMapping.Table).Append(" ")
+                .Append(_connDesc.TableAliasPrefix()).Append(leftAlias)
+                .Append(_connDesc.TableAliasSuffix());
+            switch (crit.TypeOfJoin)
+            {
+                case JoinType.Inner:
+                    query.Sql.Append(" INNER JOIN ");
+                    break;
+                case JoinType.LeftOuter:
+                    query.Sql.Append(" LEFT JOIN ");
+                    break;
+                case JoinType.RightOuter:
+                    query.Sql.Append(" RIGHT JOIN ");
+                    break;
+                case JoinType.Outer:
+                    query.Sql.Append(" ").Append(_connDesc.FullOuterJoinKeyword()).Append(" ");
+                    break;
+                default:
+                    throw new NotSupportedException("Join type " + crit.TypeOfJoin +
+                                                    " is not yet supported.");
+            }
+            query.Sql.Append(rightMapping.Table).Append(" ")
+                .Append(_connDesc.TableAliasPrefix()).Append(rightAlias)
+                .Append(_connDesc.TableAliasSuffix());
         }
 
         /// <summary>
