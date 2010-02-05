@@ -131,6 +131,8 @@
     <Compile Include="Util\DbCaches.cs" />
     <Compile Include="SQL\SqlUtilities.cs" />
     <Compile Include="Util\ParamNameCache.cs" />
+    <Compile Include="Util\PseudoJoiner.cs" />
+    <Compile Include="Util\PseudoJoinSorter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Avencia.Open.Common\Avencia.Open.Common.csproj">
