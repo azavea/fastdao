@@ -21,28 +21,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
-
 namespace Avencia.Open.DAO
 {
     /// <summary>
-    /// This interface defines the "update" methods of a FastDAO.
+    /// This interface defines the most basic methods on a FastDAO, regardless of which
+    /// interfaces it implements.
     /// </summary>
-    /// <typeparam name="T">The type of object that can be written.</typeparam>
-    public interface IFastDaoUpdater<T> : IFastDaoBase<T> where T : class, new()
+    /// <typeparam name="T">The type of object that can be deleted.</typeparam>
+// ReSharper disable UnusedTypeParameter
+    public interface IFastDaoBase<T> where T : class, new()
+// ReSharper restore UnusedTypeParameter
     {
         /// <summary>
-        /// Updates this object's record in the data source.
+        /// The ClassMapping object representing the class-to-record mapping 
+        /// to use with the data source.
         /// </summary>
-        /// <param name="obj">The object to save.</param>
-        void Update(T obj);
+        ClassMapping ClassMap { get; }
 
         /// <summary>
-        /// Updates a bunch of records in one transaction, hopefully faster than
-        /// separate calls to Update().  Whether it is actually faster depends on
-        /// the implementation.
+        /// The object describing how to connect to and/or interact with the data
+        /// source we're reading objects from.
         /// </summary>
-        /// <param name="updateUs">List of objects to save.</param>
-        void Update(IEnumerable<T> updateUs);
+        ConnectionDescriptor ConnDesc { get; }
     }
 }

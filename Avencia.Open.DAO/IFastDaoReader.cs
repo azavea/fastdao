@@ -32,20 +32,8 @@ namespace Avencia.Open.DAO
     /// This interface defines the "query" methods of FastDAO.
     /// </summary>
     /// <typeparam name="T">The type of object that can be written.</typeparam>
-    public interface IFastDaoReader<T> where T : class, new()
+    public interface IFastDaoReader<T> : IFastDaoBase<T> where T : class, new()
     {
-        /// <summary>
-        /// The ClassMapping object representing the class-to-record mapping 
-        /// to use with the data source.
-        /// </summary>
-        ClassMapping ClassMap { get; }
-
-        /// <summary>
-        /// The object describing how to connect to and/or interact with the data
-        /// source we're reading objects from.
-        /// </summary>
-        ConnectionDescriptor ConnDesc { get; }
-
         /// <summary>
         /// Returns all objects of the given type.
         /// </summary>

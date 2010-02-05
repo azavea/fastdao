@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="ClassMapping.cs" />
     <Compile Include="ConnectionDescriptor.cs" />
+    <Compile Include="IFastDaoBase.cs" />
     <Compile Include="DaJoinDelegate.cs" />
     <Compile Include="DaoIterationDelegate.cs" />
     <Compile Include="Exceptions\BadConnectionTypeException.cs" />

@@ -29,7 +29,7 @@ namespace Avencia.Open.DAO
     /// This interface defines the "insert" methods of FastDAO.
     /// </summary>
     /// <typeparam name="T">The type of object that can be written.</typeparam>
-    public interface IFastDaoInserter<T> where T : class, new()
+    public interface IFastDaoInserter<T> : IFastDaoBase<T> where T : class, new()
     {
         /// <summary>
         /// Inserts this object as a new record/row/line/etc. in the data source.
