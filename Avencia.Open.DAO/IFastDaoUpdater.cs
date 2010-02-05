@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2010 Avencia, Inc.
+﻿// Copyright (c) 2004-2010 Avencia, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -21,41 +21,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
+using System.Collections.Generic;
 
-namespace Avencia.Open.DAO.Criteria
+namespace Avencia.Open.DAO
 {
     /// <summary>
-    /// Base class for expressions that only check one property.
+    /// This interface defines the "update" methods of a FastDAO.
     /// </summary>
-    [Serializable]
-    public abstract class AbstractSinglePropertyExpression : AbstractExpression
+    /// <typeparam name="T">The type of object that can be written.</typeparam>
+    public interface IFastDaoUpdater<T> where T : new()
     {
         /// <summary>
-        /// The data class' property/field being compared.
-        /// May not be null.
+        /// Updates this object's record in the data source.
         /// </summary>
-        public readonly string Property;
-        /// <summary>
-        /// Base class for expressions that only check one property.
-        /// </summary>
-        /// <param name="property">The data class' property/field being compared.
-        ///                        May not be null.</param>
-        /// <param name="trueOrNot">True means look for matches (I.E. ==),
-        ///                         false means look for non-matches (I.E. !=)</param>
-        protected AbstractSinglePropertyExpression(string property, bool trueOrNot) : base(trueOrNot)
-        {
-            if (property == null)
-            {
-                throw new ArgumentNullException("property", "Property parameter cannot be null.");
-            }
-            Property = property;
-        }
+        /// <param name="obj">The object to save.</param>
+        void Update(T obj);
 
-        /// <exclude/>
-        public override string ToString()
-        {
-            return "Property=" + Property + ", " + base.ToString();
-        }
+        /// <summary>
+        /// Updates a bunch of records in one transaction, hopefully faster than
+        /// separate calls to Update().  Whether it is actually faster depends on
+        /// the implementation.
+        /// </summary>
+        /// <param name="updateUs">List of objects to save.</param>
+        void Update(IEnumerable<T> updateUs);
     }
 }

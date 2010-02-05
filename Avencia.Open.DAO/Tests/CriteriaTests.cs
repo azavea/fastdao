@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2004-2009 Avencia, Inc.
+﻿// Copyright (c) 2004-2010 Avencia, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation

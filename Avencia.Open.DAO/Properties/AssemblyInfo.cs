@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Avencia")]
 [assembly: AssemblyProduct("Avencia.Open.DAO")]
-[assembly: AssemblyCopyright("Copyright © Avencia 2009")]
+[assembly: AssemblyCopyright("Copyright © Avencia 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 // Configure log4net using the .config file

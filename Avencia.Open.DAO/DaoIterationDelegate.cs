@@ -21,37 +21,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
-using System.Text;
-using Avencia.Open.Common.Collections;
+using System.Collections;
 
-namespace Avencia.Open.DAO.Util
+namespace Avencia.Open.DAO
 {
     /// <summary>
-    /// Concatenating ("param" + x) wound up taking a lot of time, so here's
-    /// a cache to hold them so we only ever have to concatenate them once.
+    /// This describes a method to be executed by the QueryAndIterateOverObjects call.  This delegate
+    /// will be called once per record returned by the query and passed the data object that was
+    /// created for that record.
     /// </summary>
-    public class ParamNameCache
-    {
-        private readonly IDictionary<int, string> _cache = new CheckedDictionary<int, string>();
-
-        /// <summary>
-        /// Returns "param" + paramNum, except without calulating it every time.
-        /// </summary>
-        public string Get(int paramNum)
-        {
-            lock (_cache)
-            {
-                if (!_cache.ContainsKey(paramNum))
-                {
-                    StringBuilder newName = DbCaches.StringBuilders.Get();
-                    newName.Append("param");
-                    newName.Append(paramNum);
-                    _cache[paramNum] = newName.ToString();
-                    DbCaches.StringBuilders.Return(newName);
-                }
-                return _cache[paramNum];
-            }
-        }
-    }
+    /// <param name="parameters">A dictionary containing anything at all.  This is used as
+    ///                          a way of passing parameters to the delegate, or as a way
+    ///                          for the delegate to return values to the function that called
+    ///                          it through the Iterate method.
+    ///                          This parameter may be null.</param>
+    /// <param name="dataObject">A single data object retrieved from a query.</param>
+    public delegate void DaoIterationDelegate<T>(IDictionary parameters, T dataObject);
 }

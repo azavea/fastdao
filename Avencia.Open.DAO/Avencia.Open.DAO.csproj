@@ -53,6 +53,7 @@
     <Compile Include="ClassMapping.cs" />
     <Compile Include="ConnectionDescriptor.cs" />
     <Compile Include="DaJoinDelegate.cs" />
+    <Compile Include="DaoIterationDelegate.cs" />
     <Compile Include="Exceptions\BadConnectionTypeException.cs" />
     <Compile Include="Exceptions\UnableToConstructSqlException.cs" />
     <Compile Include="Exceptions\ExceptionWithConnectionInfo.cs" />
@@ -108,6 +109,11 @@
     <Compile Include="IDaQuery.cs" />
     <Compile Include="IDaJoinableLayer.cs" />
     <Compile Include="IDaJoinQuery.cs" />
+    <Compile Include="IFastDaoDeleter.cs" />
+    <Compile Include="IFastDaoInserter.cs" />
+    <Compile Include="IFastDaoReader.cs" />
+    <Compile Include="IFastDaoUpdater.cs" />
+    <Compile Include="JoinResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQL\DbCommandCache.cs" />
     <Compile Include="SQL\SqlDaJoinQuery.cs" />
