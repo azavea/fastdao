@@ -30,7 +30,7 @@ namespace Avencia.Open.DAO
     /// This interface defines the "delete" methods of FastDAO.
     /// </summary>
     /// <typeparam name="T">The type of object that can be deleted.</typeparam>
-    public interface IFastDaoDeleter<T> where T : new()
+    public interface IFastDaoDeleter<T> where T : class, new()
     {
         /// <summary>
         /// Deletes the specified object from the data source.  No error is generated

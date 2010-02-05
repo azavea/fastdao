@@ -29,7 +29,7 @@ namespace Avencia.Open.DAO
     /// This interface defines the "update" methods of a FastDAO.
     /// </summary>
     /// <typeparam name="T">The type of object that can be written.</typeparam>
-    public interface IFastDaoUpdater<T> where T : new()
+    public interface IFastDaoUpdater<T> where T : class, new()
     {
         /// <summary>
         /// Updates this object's record in the data source.

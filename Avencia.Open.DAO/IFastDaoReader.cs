@@ -32,8 +32,20 @@ namespace Avencia.Open.DAO
     /// This interface defines the "query" methods of FastDAO.
     /// </summary>
     /// <typeparam name="T">The type of object that can be written.</typeparam>
-    public interface IFastDaoReader<T>
+    public interface IFastDaoReader<T> where T : class, new()
     {
+        /// <summary>
+        /// The ClassMapping object representing the class-to-record mapping 
+        /// to use with the data source.
+        /// </summary>
+        ClassMapping ClassMap { get; }
+
+        /// <summary>
+        /// The object describing how to connect to and/or interact with the data
+        /// source we're reading objects from.
+        /// </summary>
+        ConnectionDescriptor ConnDesc { get; }
+
         /// <summary>
         /// Returns all objects of the given type.
         /// </summary>
@@ -71,7 +83,7 @@ namespace Avencia.Open.DAO
         /// <typeparam name="R">The type of object returned by the other DAO.</typeparam>
         /// <returns>A list of JoinResults, containing the matching objects from each DAO.  This is similar
         ///          to the way that </returns>
-        List<JoinResult<T, R>> Get<R>(DaoJoinCriteria crit, IFastDaoReader<R> rightDao);
+        List<JoinResult<T, R>> Get<R>(DaoJoinCriteria crit, IFastDaoReader<R> rightDao) where R : class, new();
 
         /// <summary>
         /// Returns the number of objects of the specified type matching the given criteria.
@@ -89,7 +101,7 @@ namespace Avencia.Open.DAO
         ///                    criteria that apply to the right or left DAO.</param>
         /// <param name="rightDao">The other DAO we are joining against.</param>
         /// <returns>The number of join results that matched the criteria.</returns>
-        int GetCount<R>(DaoJoinCriteria crit, IFastDaoReader<R> rightDao) where R : new();
+        int GetCount<R>(DaoJoinCriteria crit, IFastDaoReader<R> rightDao) where R : class, new();
 
         /// <summary>
         /// Queries for objects where the property matches the given value.
@@ -111,7 +123,15 @@ namespace Avencia.Open.DAO
         /// <param name="desc">Description of the loop for logging purposes.</param>
         /// <returns>The number of objects iterated over.</returns>
         int Iterate(DaoCriteria criteria, DaoIterationDelegate<T> invokeMe,
-                                   IDictionary parameters, string desc);
+                                   Hashtable parameters, string desc);
 
+        /// <summary>
+        /// Gets a single value off the data object based on the
+        /// name of the field/property.
+        /// </summary>
+        /// <param name="dataObject">The object to get a value off of.</param>
+        /// <param name="fieldName">The name of the field/property to get the value of.</param>
+        /// <returns>The value.</returns>
+        object GetValueFromObject(T dataObject, string fieldName);
     }
 }

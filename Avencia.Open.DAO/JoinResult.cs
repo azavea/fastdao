@@ -47,7 +47,7 @@ namespace Avencia.Open.DAO
     /// </summary>
     /// <typeparam name="L">The object type returned by the left DAO.</typeparam>
     /// <typeparam name="R">The object type returned by the right DAO.</typeparam>
-    public class JoinResult<L, R> : IUntypedJoinResult
+    public class JoinResult<L, R> : IUntypedJoinResult where L : class where R : class
     {
         /// <summary>
         /// The object from the left side of the join.  May be null if the join
@@ -96,10 +96,8 @@ namespace Avencia.Open.DAO
         /// <exclude/>
         public override string ToString()
         {
-            // ReSharper disable CompareNonConstrainedGenericWithNull
             return "[L: " + (Left == null ? "<null>" : Left.ToString()) +
                    ", R: " + (Right == null ? "<null>" : Right.ToString()) + "]";
-            // ReSharper restore CompareNonConstrainedGenericWithNull
         }
 
         /// <summary>

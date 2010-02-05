@@ -36,5 +36,5 @@ namespace Avencia.Open.DAO
     ///                          it through the Iterate method.
     ///                          This parameter may be null.</param>
     /// <param name="dataObject">A single data object retrieved from a query.</param>
-    public delegate void DaoIterationDelegate<T>(IDictionary parameters, T dataObject);
+    public delegate void DaoIterationDelegate<T>(Hashtable parameters, T dataObject);
 }
