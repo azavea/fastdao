@@ -1,11 +1,11 @@
 ﻿<project schemaVersion="1.6.0.7">
     <assemblies>
-        <assembly assemblyPath=".\Avencia.Open.Common\bin\Release\Avencia.Open.Common.dll" xmlCommentsPath=".\Avencia.Open.Common\bin\Release\Avencia.Open.Common.XML" commentsOnly="False" />
-        <assembly assemblyPath="" xmlCommentsPath=".\Avencia.Open.Common\bin\release\Avencia.Open.Common.NamespaceDocs.xml" commentsOnly="True" />
+        <assembly assemblyPath=".\Azavea.Open.Common\bin\Release\Azavea.Open.Common.dll" xmlCommentsPath=".\Azavea.Open.Common\bin\Release\Azavea.Open.Common.XML" commentsOnly="False" />
+        <assembly assemblyPath="" xmlCommentsPath=".\Azavea.Open.Common\bin\release\Azavea.Open.Common.NamespaceDocs.xml" commentsOnly="True" />
     </assemblies>
     <dependencies>
-        <dependencyItem depPath=".\Avencia.Open.Common\lib\log4net\log4net.dll" />
-        <dependencyItem depPath=".\Avencia.Open.Common\lib\nunit\nunit.framework.dll" />
+        <dependencyItem depPath=".\Azavea.Open.Common\lib\log4net\log4net.dll" />
+        <dependencyItem depPath=".\Azavea.Open.Common\lib\nunit\nunit.framework.dll" />
     </dependencies>
     <ProjectSummary />
     <MissingTags>Summary, Parameter, Returns, AutoDocumentCtors, Namespace, TypeParameter</MissingTags>
