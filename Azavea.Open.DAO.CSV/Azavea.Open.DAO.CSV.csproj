@@ -31,21 +31,44 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Azavea.Open.DAO\lib\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.2.10.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Azavea.Open.DAO\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CsvConnectionType.cs" />
+    <Compile Include="CsvDataReader.cs" />
+    <Compile Include="CsvDescriptor.cs" />
+    <Compile Include="CsvQuoteLevel.cs" />
+    <Compile Include="CsvDaLayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests\CsvDaoTests.cs" />
+    <Compile Include="Tests\CsvJoinTests.cs" />
+    <Compile Include="Tests\MiscCsvTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Azavea.Open.Common\Azavea.Open.Common.csproj">
+      <Project>{ADBFE412-4F06-454A-AAF5-E93719E3B1FD}</Project>
+      <Name>Azavea.Open.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Azavea.Open.DAO\Azavea.Open.DAO.csproj">
       <Project>{A510DDB6-F817-4610-B08C-305EB937CE4F}</Project>
       <Name>Azavea.Open.DAO</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Tests\" />
+    <Content Include="Tests\Mapping.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Tests\CsvDao.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

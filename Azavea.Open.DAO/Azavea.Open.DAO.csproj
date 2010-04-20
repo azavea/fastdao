@@ -52,6 +52,9 @@
   <ItemGroup>
     <Compile Include="ClassMapping.cs" />
     <Compile Include="ConnectionDescriptor.cs" />
+    <Compile Include="DictionaryDao.cs" />
+    <Compile Include="Exceptions\UnexpectedResultsException.cs" />
+    <Compile Include="FastDAO.cs" />
     <Compile Include="IFastDaoBase.cs" />
     <Compile Include="DaJoinDelegate.cs" />
     <Compile Include="DaoIterationDelegate.cs" />
@@ -115,6 +118,10 @@
     <Compile Include="IFastDaoReader.cs" />
     <Compile Include="IFastDaoUpdater.cs" />
     <Compile Include="JoinResult.cs" />
+    <Compile Include="Memory\MemoryDescriptor.cs" />
+    <Compile Include="Memory\MemoryDaLayer.cs" />
+    <Compile Include="Memory\MemoryDataReader.cs" />
+    <Compile Include="Memory\MemoryObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQL\DbCommandCache.cs" />
     <Compile Include="SQL\SqlDaJoinQuery.cs" />
@@ -124,7 +131,14 @@
     <Compile Include="SQL\SqlClauseWithValue.cs" />
     <Compile Include="SQL\DbConnectionCache.cs" />
     <Compile Include="SQL\AbstractSqlConnectionDescriptor.cs" />
+    <Compile Include="Tests\AbstractFastDAOTests.cs" />
+    <Compile Include="Tests\AbstractJoinTests.cs" />
+    <Compile Include="Tests\MemoryDaoTests.cs" />
+    <Compile Include="Tests\PseudoJoinTests.cs" />
     <Compile Include="Tests\SqlUtilTests.cs" />
+    <Compile Include="Unqueryable\UnqueryableDaLayer.cs" />
+    <Compile Include="Unqueryable\UnqueryableDataReader.cs" />
+    <Compile Include="Unqueryable\UnqueryableQuery.cs" />
     <Compile Include="Util\DataReaderDelegate.cs" />
     <Compile Include="Tests\CriteriaTests.cs" />
     <Compile Include="Util\CachingDataReader.cs" />
@@ -140,6 +154,9 @@
       <Project>{ADBFE412-4F06-454A-AAF5-E93719E3B1FD}</Project>
       <Name>Azavea.Open.Common</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Tests\MemoryDao.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -63,6 +63,31 @@ namespace Azavea.Open.DAO
         /// <returns>A fully populated ConnectionDescriptor.</returns>
         public static ConnectionDescriptor LoadFromConfig(Config cfg, string section)
         {
+            return LoadFromConfig(cfg, section, null);
+        }
+
+        /// <summary>
+        /// This is a factory method, that will load the appropriate type of connection
+        /// descriptor using the given config.
+        /// 
+        /// It first searches for config item(s) called "ConnectionConfigSection" and/or
+        /// "ConnectionConfig".  (ConnectionConfig should be an "app name" for a config, not a file name).
+        /// If present, it will use those to load from another section in this or another
+        /// config file.  This allows more dynamic install-time configuration of DB connections.
+        /// You may daisy-chain the configuration if you wish.
+        /// 
+        /// Once in the connection configuration section, it will first search for the "DescriptorClass"
+        /// config item, and use that class if specified.  If not, defaults to an OleDbDescriptor
+        /// (which means it should be backwards compatible for all our existing config files).
+        /// </summary>
+        /// <param name="cfg">Config to load the descriptor info from.</param>
+        /// <param name="section">What section of that config has the DB connection info in it.</param>
+        /// <param name="decryptionDelegate">Method to call to decrypt information, if the actual
+        ///                                  connection descriptor type supports decryption.  May be null.</param>
+        /// <returns>A fully populated ConnectionDescriptor.</returns>
+        public static ConnectionDescriptor LoadFromConfig(Config cfg, string section,
+            ConnectionInfoDecryptionDelegate decryptionDelegate)
+        {
             if (!cfg.ComponentExists(section))
             {
                 throw new BadDaoConfigurationException("Config section " + section +
@@ -73,8 +98,8 @@ namespace Azavea.Open.DAO
             if (cfg.ParameterExists(section, "ConnectionConfig") ||
                 cfg.ParameterExists(section, "ConnectionConfigSection"))
             {
-                string otherName = cfg.GetParameterWithDefault(section, "ConnectionConfig", cfg.Application);
-                string otherSection = cfg.GetParameterWithDefault(section, "ConnectionConfigSection", section);
+                string otherName = cfg.GetParameter(section, "ConnectionConfig", cfg.Application);
+                string otherSection = cfg.GetParameter(section, "ConnectionConfigSection", section);
                 if (_log.IsDebugEnabled)
                 {
                     _log.Debug("Loading " + section + " connection info from "
@@ -87,12 +112,10 @@ namespace Azavea.Open.DAO
             {
                 // Not overridden, read from this config section.
                 // For backwards compatibility, default to using an OleDb descriptor.
-                string typeName = cfg.GetParameterWithDefault(section, "DescriptorClass",
-                    // TODO: Temporarily using the 'internal' azavea class until we can finish moving it to open source.
-                    "Azavea.Database.OleDbDescriptor,Azavea.Database");
-                    // TODO: Should really be: 
-                    //"Azavea.Open.DAO.OleDb.OleDbDescriptor,Azavea.Open.DAO.OleDb");
-                Type[] paramTypes = new [] {typeof (Config), typeof (string)};
+                string typeName = cfg.GetParameter(section, "DescriptorClass",
+                    "Azavea.Open.DAO.OleDb.OleDbDescriptor,Azavea.Open.DAO.OleDb");
+                Type[] paramTypes = new Type[] {typeof (Config), typeof (string),
+                    typeof(ConnectionInfoDecryptionDelegate)};
                 Type descType = Type.GetType(typeName);
                 if (descType == null)
                 {
@@ -105,7 +128,7 @@ namespace Azavea.Open.DAO
                     throw new BadDaoConfigurationException("DescriptorClass '" + typeName +
                                                            "' was specified, but we were unable to get constructor info.");
                 }
-                retVal = (ConnectionDescriptor)constr.Invoke(new object[] { cfg, section });
+                retVal = (ConnectionDescriptor)constr.Invoke(new object[] { cfg, section, decryptionDelegate });
             }
             return retVal;
         }
@@ -174,5 +197,40 @@ namespace Azavea.Open.DAO
         {
             return ToCompleteString().GetHashCode();
         }
+
+        /// <summary>
+        /// This method is provided for convenience.  If decryptionDelegate is not null,
+        /// will use it to decrypt whatever value is in the config parameter.
+        /// </summary>
+        /// <param name="config">Config file to get the parameter from.</param>
+        /// <param name="component">Section within the config file.</param>
+        /// <param name="paramName">Name of the paraneter within the section.</param>
+        /// <param name="decryptionDelegate">Method to call to decrypt the parameter.  May be null if using plain text.</param>
+        /// <returns></returns>
+        protected static string GetDecryptedConfigParameter(Config config,
+            string component, string paramName, ConnectionInfoDecryptionDelegate decryptionDelegate)
+        {
+            string retVal = config.GetParameter(component, paramName, null);
+            if (decryptionDelegate != null)
+            {
+                retVal = decryptionDelegate.Invoke(retVal);
+            }
+            return retVal;
+        }
+
     }
+
+    /// <summary>
+    /// Connection descriptors may support having the connection info stored in the
+    /// configuration file in an encrypted format (particularly passwords).  Depending
+    /// on the system this may or may not provide actual security benefits, but often
+    /// makes people feel better.
+    /// 
+    /// This is the delegate that the connection descriptor uses to decrypt any encrypted
+    /// information (what the descriptor supports having encrypted depends on the
+    /// implementation, typically it is just password fields).
+    /// </summary>
+    /// <param name="input">Encrypted info from the config file.</param>
+    /// <returns>The same info in plain text.</returns>
+    public delegate string ConnectionInfoDecryptionDelegate(string input);
 }

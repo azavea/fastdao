@@ -21,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections;
-
 namespace Azavea.Open.DAO
 {
     /// <summary>
@@ -30,11 +28,15 @@ namespace Azavea.Open.DAO
     /// will be called once per record returned by the query and passed the data object that was
     /// created for that record.
     /// </summary>
+    /// <typeparam name="T">The type of the data objects being processed.</typeparam>
+    /// <typeparam name="P">The type of the 'parameters' object the delegate accepts.  A common
+    ///                     pattern is to make this a Hashtable, thus allowing a collecion of
+    ///                     values to be passed in, and allowing values to be returned.</typeparam>
     /// <param name="parameters">A dictionary containing anything at all.  This is used as
     ///                          a way of passing parameters to the delegate, or as a way
     ///                          for the delegate to return values to the function that called
     ///                          it through the Iterate method.
     ///                          This parameter may be null.</param>
     /// <param name="dataObject">A single data object retrieved from a query.</param>
-    public delegate void DaoIterationDelegate<T>(Hashtable parameters, T dataObject);
+    public delegate void DaoIterationDelegate<T, P>(P parameters, T dataObject);
 }

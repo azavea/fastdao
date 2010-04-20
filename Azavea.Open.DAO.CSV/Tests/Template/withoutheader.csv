@@ -1,0 +1,28 @@
+0,1E-13,"""hi""",10/7/2009
+1,1E-13,"this'""",10/7/2009 13:00
+,1E-13,"!$(#@(^(^)$#^*@)($^#(%($*^@}{""L:D",10/8/2009 13:00
+2,1E-13,,10/9/2009 13:00
+3,1E-13,                                ,10/10/2009 13:00
+4,,string,4:56
+5,test,string,10/12/2009 13:00
+6,1E-13,string,
+7,1E-13,"  char c = GetNextChar(true);
+                                        if (EOS)
+                                                return item.Length > 0 ? item.ToString() : null;
+
+                                        if ((postdata || !quoted) && c == ',')
+                                                // end of item, return
+                                                return item.ToString();
+                                       
+                                        if ((predata || postdata || !quoted) && (c == '\x0A' || c == '\x0D'))
+                                        {
+                                                // we are at the end of the line, eat newline characters and exit
+                                                EOL = true;
+                                                if (c == '\x0D' && GetNextChar(false) == '\x0A')
+                                                        // new line sequence is 0D0A
+                                                        GetNextChar(true);
+                                                return item.ToString();
+                                        }",10/14/2009 13:00
+"8,900,100",1E-13,"string, string, string, hahaha",10/15/2009 13:00
+9,2.35982E+11,string,10/16/2009 13:00
+0,2.83948E+15,string,10/17/2009 13:00

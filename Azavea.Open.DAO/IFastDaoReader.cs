@@ -21,7 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections;
 using System.Collections.Generic;
 using Azavea.Open.DAO.Criteria;
 using Azavea.Open.DAO.Criteria.Joins;
@@ -104,14 +103,15 @@ namespace Azavea.Open.DAO
         /// records and invokes the specified delegate for each one.  This allows processing of much
         /// larger result sets since it doesn't attempt to load all the objects into memory at once.
         /// </summary>
+        /// <typeparam name="P">The type of the 'parameters' object taken by the delegate.</typeparam>
         /// <param name="criteria">Any criteria for the query.  May be null for "all records".</param>
         /// <param name="invokeMe">The method to invoke for each object returned by the query.</param>
         /// <param name="parameters">Any parameters that you want to pass to the invokeMe method.
         ///                            This may be null.</param>
         /// <param name="desc">Description of the loop for logging purposes.</param>
         /// <returns>The number of objects iterated over.</returns>
-        int Iterate(DaoCriteria criteria, DaoIterationDelegate<T> invokeMe,
-                                   Hashtable parameters, string desc);
+        int Iterate<P>(DaoCriteria criteria, DaoIterationDelegate<T, P> invokeMe,
+                                   P parameters, string desc);
 
         /// <summary>
         /// Gets a single value off the data object based on the
