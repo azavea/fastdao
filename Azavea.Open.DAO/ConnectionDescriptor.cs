@@ -106,7 +106,7 @@ namespace Azavea.Open.DAO
                                + otherName + "[" + otherSection + "]");
                 }
                 // Recurse with different config values.
-                retVal = LoadFromConfig(Config.GetConfig(otherName), otherSection);
+                retVal = LoadFromConfig(Config.GetConfig(otherName), otherSection, decryptionDelegate);
             }
             else
             {
