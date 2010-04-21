@@ -211,7 +211,7 @@ namespace Azavea.Open.DAO
             string component, string paramName, ConnectionInfoDecryptionDelegate decryptionDelegate)
         {
             string retVal = config.GetParameter(component, paramName, null);
-            if (decryptionDelegate != null)
+            if ((decryptionDelegate != null) && (retVal != null))
             {
                 retVal = decryptionDelegate.Invoke(retVal);
             }
