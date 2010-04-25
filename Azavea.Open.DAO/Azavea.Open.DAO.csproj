@@ -133,6 +133,7 @@
     <Compile Include="SQL\AbstractSqlConnectionDescriptor.cs" />
     <Compile Include="Tests\AbstractFastDAOTests.cs" />
     <Compile Include="Tests\AbstractJoinTests.cs" />
+    <Compile Include="Tests\MappingTests.cs" />
     <Compile Include="Tests\MemoryDaoTests.cs" />
     <Compile Include="Tests\PseudoJoinTests.cs" />
     <Compile Include="Tests\SqlUtilTests.cs" />
@@ -157,6 +158,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Tests\MemoryDao.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Tests\Mapping.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
