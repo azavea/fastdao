@@ -23,6 +23,7 @@
 
 using System.Collections.Generic;
 using Azavea.Open.DAO.Criteria;
+using Azavea.Open.DAO.Criteria.Grouping;
 using Azavea.Open.DAO.Criteria.Joins;
 
 namespace Azavea.Open.DAO
@@ -78,6 +79,17 @@ namespace Azavea.Open.DAO
         /// <param name="crit">The criteria that you wish the objects to match.  Start/limit and order are ignored.</param>
         /// <returns>The number of objects that match the criteria.</returns>
         int GetCount(DaoCriteria crit);
+
+        /// <summary>
+        /// Returns the number of objects of the specified type matching the given criteria,
+        /// aggregated by the given grouping expressions.  This matches "GROUP BY" behavior
+        /// in SQL.
+        /// </summary>
+        /// <param name="crit">The criteria that you wish the objects to match.  Start/limit and order are ignored.</param>
+        /// <param name="groupExpressions">The fields/expressions to aggregate on when counting.</param>
+        /// <returns>The number of objects that match the criteria, plus the values of those objects
+        ///          for the fields that were aggregated on.</returns>
+        List<GroupCountResult> GetCount(DaoCriteria crit, ICollection<AbstractGroupExpression> groupExpressions);
 
         /// <summary>
         /// Performs a join using the given join criteria and returns the number of rows that

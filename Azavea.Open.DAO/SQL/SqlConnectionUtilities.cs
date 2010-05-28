@@ -85,12 +85,42 @@ namespace Azavea.Open.DAO.SQL
         /// <param name="parameters">The other parameters to the delegate, in whatever
         ///							 form makes sense for that delegate method.</param>
         public static void XSafeQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
-                                      IEnumerable sqlParams, DataReaderDelegate invokeMe, Hashtable parameters) 
+                                      IEnumerable sqlParams, DataReaderDelegate invokeMe, Hashtable parameters)
         {
-            IDbConnection conn = DbCaches.Connections.Get(connDesc);
+            XSafeQuery(connDesc, null, sql, sqlParams, invokeMe, parameters);
+        }
+        /// <summary>
+        /// This provides a way to query the DB and do something with the results without
+        /// having to copy the "try, open, try, execute, finally, close, finally, close"
+        /// type logic in a bunch of places.  This method correctly closes the objects
+        /// used in the DB access in the event of an exception.
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL statement to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <param name="invokeMe">The method to delegate to.  If null, nothing is
+        ///                        done with the data reader and it is just closed.</param>
+        /// <param name="parameters">The other parameters to the delegate, in whatever
+        ///							 form makes sense for that delegate method.</param>
+        public static void XSafeQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql,
+            IEnumerable sqlParams, DataReaderDelegate invokeMe, Hashtable parameters) 
+        {
+            IDbConnection conn = transaction != null
+                ? transaction.Connection
+                : DbCaches.Connections.Get(connDesc);
             try 
             {
                 IDbCommand cmd = DbCaches.Commands.Get(sql, conn);
+                if (transaction != null)
+                {
+                    cmd.Transaction = transaction.Transaction;
+                }
                 try 
                 {
                     SetSQLOnCommand(connDesc, cmd, sql, sqlParams);
@@ -142,7 +172,10 @@ namespace Azavea.Open.DAO.SQL
             }
             finally 
             {
-                DbCaches.Connections.Return(connDesc, conn);
+                if (transaction == null)
+                {
+                    DbCaches.Connections.Return(connDesc, conn);
+                }
             }
         }
 
@@ -161,8 +194,26 @@ namespace Azavea.Open.DAO.SQL
         public static string XSafeStringQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
                                               IEnumerable sqlParams)
         {
+            return XSafeStringQuery(connDesc, null, sql, sqlParams);
+        }
+        /// <summary>
+        /// Similar to the "XSafeQuery" method, except this executes a
+        /// query that returns a single string.
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>The string returned by the query.</returns>
+        public static string XSafeStringQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams)
+        {
             string retVal = null;
-            object retObj = XSafeScalarQuery(connDesc, sql, sqlParams);
+            object retObj = XSafeScalarQuery(connDesc, transaction, sql, sqlParams);
             try
             {
                 // If it's null, retVal will stay null.
@@ -194,8 +245,27 @@ namespace Azavea.Open.DAO.SQL
         public static int XSafeIntQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
                                         IEnumerable sqlParams)
         {
+            return XSafeIntQuery(connDesc, null, sql, sqlParams);
+        }
+
+        /// <summary>
+        /// Similar to the "XSafeQuery" method, except this executes a
+        /// query that returns a single integer (such as SELECT COUNT).
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>The integer returned by the query.</returns>
+        public static int XSafeIntQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams)
+        {
             int retVal;
-            object retObj = XSafeScalarQuery(connDesc, sql, sqlParams);
+            object retObj = XSafeScalarQuery(connDesc, transaction, sql, sqlParams);
             try
             {
                 if (retObj == null)
@@ -225,11 +295,29 @@ namespace Azavea.Open.DAO.SQL
         ///							to the SQL statement.  The list may be
         ///							null if there are no parameters.</param>
         /// <returns>The DateTime returned by the query.</returns>
-        public static DateTime XSafeDateQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
-                                              IEnumerable sqlParams)
+        public static DateTime XSafeDateQuery(AbstractSqlConnectionDescriptor connDesc,
+            string sql, IEnumerable sqlParams)
+        {
+            return XSafeDateQuery(connDesc, null, sql, sqlParams);
+        }
+        /// <summary>
+        /// Similar to the "XSafeQuery" method, except this executes a
+        /// query that returns a single DateTime (such as SELECT MAX(DateField)).
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>The DateTime returned by the query.</returns>
+        public static DateTime XSafeDateQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams)
         {
             DateTime retVal;
-            object retObj = XSafeScalarQuery(connDesc, sql, sqlParams);
+            object retObj = XSafeScalarQuery(connDesc, transaction, sql, sqlParams);
             try
             {
                 if (retObj == null)
@@ -262,8 +350,26 @@ namespace Azavea.Open.DAO.SQL
         public static double XSafeDoubleQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
                                               IEnumerable sqlParams)
         {
+            return XSafeDoubleQuery(connDesc, null, sql, sqlParams);
+        }
+        /// <summary>
+        /// Similar to the "XSafeQuery" method, except this executes a
+        /// query that returns a single floating-point number (such as SELECT SUM(...)).
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>The floating-point number returned by the query.</returns>
+        public static double XSafeDoubleQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams)
+        {
             double retVal;
-            object retObj = XSafeScalarQuery(connDesc, sql, sqlParams);
+            object retObj = XSafeScalarQuery(connDesc, transaction, sql, sqlParams);
             try
             {
                 if (retObj == null)
@@ -296,10 +402,30 @@ namespace Azavea.Open.DAO.SQL
         ///			(presumably there is only one column in the results).  If no results
         ///			were returned, this List will be empty.</returns>
         public static IList<string> XSafeStringListQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
-                                                         IEnumerable sqlParams) 
+                                                         IEnumerable sqlParams)
+        {
+            return XSafeStringListQuery(connDesc, null, sql, sqlParams);
+        }
+        /// <summary>
+        /// Similar to the other XSafe methods, except this one returns a list of
+        /// strings (for example, SELECT NAME FROM EMPLOYEES).
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>A List of strings, from the first column of the results 
+        ///			(presumably there is only one column in the results).  If no results
+        ///			were returned, this List will be empty.</returns>
+        public static IList<string> XSafeStringListQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams) 
         {
             Hashtable parameters = DbCaches.Hashtables.Get();
-            XSafeQuery(connDesc, sql, sqlParams, ReadStringsFromQuery, parameters);
+            XSafeQuery(connDesc, transaction, sql, sqlParams, ReadStringsFromQuery, parameters);
             IList<string> retVal = (IList<string>)parameters["results"];
             DbCaches.Hashtables.Return(parameters);
             return retVal;
@@ -323,8 +449,29 @@ namespace Azavea.Open.DAO.SQL
         public static IList<int> XSafeIntListQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
                                                    IEnumerable sqlParams)
         {
+            return XSafeIntListQuery(connDesc, null, sql, sqlParams);
+        }
+        /// <summary>
+        /// Similar to the other XSafe methods, except this one returns a list of
+        /// integers (for example, SELECT AGE FROM EMPLOYEES).
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>A List of integers, from the first column of the results 
+        ///			(presumably there is only one column in the results).  If no results
+        ///			were returned, this List will be empty.  Since integers are not nullable,
+        ///         NULL VALUES WILL BE IGNORED.</returns>
+        public static IList<int> XSafeIntListQuery(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams)
+        {
             Hashtable parameters = DbCaches.Hashtables.Get();
-            XSafeQuery(connDesc, sql, sqlParams, ReadIntsFromQuery, parameters);
+            XSafeQuery(connDesc, transaction, sql, sqlParams, ReadIntsFromQuery, parameters);
             IList<int> retVal = (IList<int>)parameters["results"];
             DbCaches.Hashtables.Return(parameters);
             return retVal;
@@ -343,13 +490,37 @@ namespace Azavea.Open.DAO.SQL
         ///							null if there are no parameters.</param>
         /// <returns>The number of rows affected.</returns>
         public static int XSafeCommand(AbstractSqlConnectionDescriptor connDesc, string sql,
-                                       IEnumerable sqlParams) 
+                                       IEnumerable sqlParams)
+        {
+            return XSafeCommand(connDesc, null, sql, sqlParams);
+        }
+        /// <summary>
+        /// Similar to the "XSafeQuery" method, except this executes a
+        /// non-query type SQL statement.
+        /// </summary>
+        /// <param name="connDesc">The database connection descriptor.  This is used both as
+        ///                        a key for caching connections/commands as well as for
+        ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="sql">The SQL statement to execute.</param>
+        /// <param name="sqlParams">A list of objects to use as parameters
+        ///							to the SQL statement.  The list may be
+        ///							null if there are no parameters.</param>
+        /// <returns>The number of rows affected.</returns>
+        public static int XSafeCommand(AbstractSqlConnectionDescriptor connDesc,
+            SqlTransaction transaction, string sql, IEnumerable sqlParams) 
         {
             int retVal;
-            IDbConnection conn = DbCaches.Connections.Get(connDesc);
+            IDbConnection conn = transaction != null
+                ? transaction.Connection
+                : DbCaches.Connections.Get(connDesc);
             try 
             {
                 IDbCommand cmd = DbCaches.Commands.Get(sql, conn);
+                if (transaction != null)
+                {
+                    cmd.Transaction = transaction.Transaction;
+                }
                 try 
                 {
                     SetSQLOnCommand(connDesc, cmd, sql, sqlParams);
@@ -369,7 +540,10 @@ namespace Azavea.Open.DAO.SQL
             } 
             finally 
             {
-                DbCaches.Connections.Return(connDesc, conn);
+                if (transaction == null)
+                {
+                    DbCaches.Connections.Return(connDesc, conn);
+                }
             }
             return retVal;
         }
@@ -409,6 +583,7 @@ namespace Azavea.Open.DAO.SQL
         ///	<returns>A List of ints, indicating how many records were affected by
         ///				each sql statement.  If this is not a transaction, individual statements
         ///				that failed will get a zero (since they failed, no records were affected).</returns>
+        [Obsolete("Will be removed after 1 Dec 2010.  Now that transactions are well-supported in the API, there is no longer a need to offer this method as a shortcut.  It is also more logical that the client decide whether exceptions should be ignored or not.")]
         public static IList<int> XSafeCommandBatch(AbstractSqlConnectionDescriptor connDesc, IList<string> sqls,
                                                    IList<IEnumerable> listOfSqlParamLists, bool isTransaction) 
         {
@@ -540,6 +715,7 @@ namespace Azavea.Open.DAO.SQL
         ///							 be passed every time to the delegate, so the delegate can
         ///							 pass information to subsequent calls to itself (in this batch)
         ///                          by setting values in this hashtable.</param>
+        [Obsolete("Will be removed after 1 Dec 2010.  Now that transactions are well-supported in the API, there is no longer a need to offer this method as a shortcut.  It is also more logical that the client decide whether exceptions should be ignored or not.")]
         public static void XSafeQueryBatch(AbstractSqlConnectionDescriptor connDesc, IList<string> sqls,
                                            IList<IEnumerable> listOfSqlParamLists, DataReaderDelegate invokeMe, Hashtable parameters)
         {
@@ -582,6 +758,7 @@ namespace Azavea.Open.DAO.SQL
         ///				transaction, meaning if one fails, all will be rolled back.  If false,
         ///				the failure of one statement will not prevent the rest of the statements
         ///				from being executed.</param>
+        [Obsolete("Will be removed after 1 Dec 2010.  Now that transactions are well-supported in the API, there is no longer a need to offer this method as a shortcut.  It is also more logical that the client decide whether exceptions should be ignored or not.")]
         public static void XSafeQueryBatch(AbstractSqlConnectionDescriptor connDesc, IList<string> sqls,
                                            IList<IEnumerable> listOfSqlParamLists, DataReaderDelegate invokeMe, Hashtable parameters,
                                            bool isTransaction)
@@ -972,19 +1149,26 @@ namespace Azavea.Open.DAO.SQL
         /// <param name="connDesc">The database connection descriptor.  This is used both as
         ///                        a key for caching connections/commands as well as for
         ///                        getting the actual database connection the first time.</param>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="sql">The SQL query to execute.</param>
         /// <param name="sqlParams">A list of objects to use as parameters
         ///							to the SQL statement.  The list may be
         ///							null if there are no parameters.</param>
         /// <returns>The single result returned by the query.</returns>
-        private static object XSafeScalarQuery(AbstractSqlConnectionDescriptor connDesc, string sql,
-                                               IEnumerable sqlParams)
+        private static object XSafeScalarQuery(AbstractSqlConnectionDescriptor connDesc, 
+            SqlTransaction transaction, string sql, IEnumerable sqlParams)
         {
             object retVal;
-            IDbConnection conn = DbCaches.Connections.Get(connDesc);
+            IDbConnection conn = transaction != null
+                ? transaction.Connection
+                : DbCaches.Connections.Get(connDesc);
             try
             {
                 IDbCommand cmd = DbCaches.Commands.Get(sql, conn);
+                if (transaction != null)
+                {
+                    cmd.Transaction = transaction.Transaction;
+                }
                 try
                 {
                     SetSQLOnCommand(connDesc, cmd, sql, sqlParams);
@@ -1004,7 +1188,10 @@ namespace Azavea.Open.DAO.SQL
             }
             finally
             {
-                DbCaches.Connections.Return(connDesc, conn);
+                if (transaction == null)
+                {
+                    DbCaches.Connections.Return(connDesc, conn);
+                }
             }
             return retVal;
         }
@@ -1062,8 +1249,8 @@ namespace Azavea.Open.DAO.SQL
         /// <summary>
         /// Helper to set up a command with sql and parameters and other misc stuff.
         /// </summary>
-        private static void SetSQLOnCommand(AbstractSqlConnectionDescriptor connDesc, IDbCommand cmd, string sql,
-                                            IEnumerable sqlParams)
+        private static void SetSQLOnCommand(AbstractSqlConnectionDescriptor connDesc, 
+            IDbCommand cmd, string sql, IEnumerable sqlParams)
         {
             if (connDesc == null)
             {

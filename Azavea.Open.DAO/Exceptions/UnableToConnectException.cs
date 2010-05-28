@@ -38,7 +38,7 @@ namespace Azavea.Open.DAO.Exceptions
         ///                        known.  This is used in the message only if it is greater
         ///                        than 1.</param>
         /// <param name="e">Exception that was thrown by the database driver.</param>
-        public UnableToConnectException(ConnectionDescriptor desc, int numTimes, Exception e)
+        public UnableToConnectException(IConnectionDescriptor desc, int numTimes, Exception e)
             : base("Unable to connect to database" +
                    ((numTimes > 1) ? (" (" + numTimes + " time(s) in a row).") : "."), desc, e)
         {

@@ -41,7 +41,7 @@ namespace Azavea.Open.DAO
         /// <param name="rightConn">The connection info for the other DAO we're joining with.</param>
         /// <param name="rightMapping">Class mapping for the right table we would be querying against.</param>
         /// <returns>True if we can perform the join natively, false if we cannot.</returns>
-        bool CanJoin<R>(DaoJoinCriteria crit, ConnectionDescriptor rightConn, ClassMapping rightMapping) where R : new();
+        bool CanJoin<R>(DaoJoinCriteria crit, IConnectionDescriptor rightConn, ClassMapping rightMapping) where R : new();
 
         /// <summary>
         /// This is not guaranteed to succeed unless CanJoin(crit, rightDao) returns true.

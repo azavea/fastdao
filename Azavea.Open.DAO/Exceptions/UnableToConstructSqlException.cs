@@ -37,7 +37,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="message">Start of the message, if you don't want to use the default.</param>
         /// <param name="desc">Connection descriptor we would have connected with.</param>
         /// <param name="e">Exception that was thrown by the database driver.</param>
-        public UnableToConstructSqlException(string message, ConnectionDescriptor desc, Exception e)
+        public UnableToConstructSqlException(string message, IConnectionDescriptor desc, Exception e)
             : base(message, desc, e) { }
     }
 }

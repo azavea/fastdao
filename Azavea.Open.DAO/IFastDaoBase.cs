@@ -42,6 +42,6 @@ namespace Azavea.Open.DAO
         /// The object describing how to connect to and/or interact with the data
         /// source we're reading objects from.
         /// </summary>
-        ConnectionDescriptor ConnDesc { get; }
+        IConnectionDescriptor ConnDesc { get; }
     }
 }

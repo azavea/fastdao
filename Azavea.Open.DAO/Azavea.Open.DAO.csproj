@@ -52,7 +52,18 @@
   <ItemGroup>
     <Compile Include="ClassMapping.cs" />
     <Compile Include="ConnectionDescriptor.cs" />
+    <Compile Include="Criteria\Grouping\AbstractGroupExpression.cs" />
+    <Compile Include="Criteria\Grouping\GroupCountSortOrder.cs" />
+    <Compile Include="Criteria\Grouping\MemberGroupExpression.cs" />
+    <Compile Include="GroupCountResult.cs" />
+    <Compile Include="IConnectionDescriptor.cs" />
+    <Compile Include="ITransaction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ITransactionalConnectionDescriptor.cs" />
     <Compile Include="DictionaryDao.cs" />
+    <Compile Include="Exceptions\AlreadyTerminatedException.cs" />
+    <Compile Include="Exceptions\UnableToCreateTransactionException.cs" />
     <Compile Include="Exceptions\UnexpectedResultsException.cs" />
     <Compile Include="FastDAO.cs" />
     <Compile Include="IFastDaoBase.cs" />
@@ -131,6 +142,7 @@
     <Compile Include="SQL\SqlClauseWithValue.cs" />
     <Compile Include="SQL\DbConnectionCache.cs" />
     <Compile Include="SQL\AbstractSqlConnectionDescriptor.cs" />
+    <Compile Include="SQL\SqlTransaction.cs" />
     <Compile Include="Tests\AbstractFastDAOTests.cs" />
     <Compile Include="Tests\AbstractJoinTests.cs" />
     <Compile Include="Tests\MappingTests.cs" />

@@ -37,7 +37,7 @@ namespace Azavea.Open.DAO.SQL
     /// 
     /// This class, and any that extend it, should be thread safe.
     /// </summary>
-    public abstract class AbstractSqlConnectionDescriptor : ConnectionDescriptor
+    public abstract class AbstractSqlConnectionDescriptor : ConnectionDescriptor, ITransactionalConnectionDescriptor
     {
         /// <summary>
         /// Returns the appropriate data access layer for this connection.  The default
@@ -47,6 +47,19 @@ namespace Azavea.Open.DAO.SQL
         public override IDaLayer CreateDataAccessLayer()
         {
             return new SqlDaJoinableLayer(this, true);
+        }
+
+        /// <summary>
+        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
+        /// use for operations you wish to be part of the transaction.
+        /// 
+        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
+        /// </summary>
+        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
+        ///          happen as part of this transaction.</returns>
+        public ITransaction BeginTransaction()
+        {
+            return new SqlTransaction(this);
         }
 
         /// <summary>
@@ -201,6 +214,13 @@ namespace Azavea.Open.DAO.SQL
         public abstract bool NeedToAliasColumns();
 
         /// <summary>
+        /// Does the database require the "AS" keyword for aliasing a column?
+        /// Most do not, but some (MS Access) do.
+        /// </summary>
+        /// <returns>True if "AS" is required when aliasing a column.</returns>
+        public abstract bool NeedAsForColumnAliases();
+
+        /// <summary>
         /// Some databases want the " AS " keyword, some want the alias in quotes
         /// (cough SQLite cough), or square brackets (cough Microsoft cough), or 
         /// whatever.  This provides the database-specific stuff that comes before
@@ -219,6 +239,17 @@ namespace Azavea.Open.DAO.SQL
         /// <returns>The keyword, quotes, brackets, etc used after the alias
         ///          when aliasing a column.</returns>
         public abstract string ColumnAliasSuffix();
+
+        /// <summary>
+        /// Some databases (cough MS Access cough) include the prefix/suffix
+        /// around the alias in the result "column" names.  
+        /// </summary>
+        /// <returns>Whether to expect quotes/brackets/etc around the 
+        ///          aliased column names in the DataReader.</returns>
+        public virtual bool ColumnAliasWrappersInResults()
+        {
+            return false;
+        }
 
         /// <summary>
         /// Some databases want the " AS " keyword, some don't (cough Oracle cough).

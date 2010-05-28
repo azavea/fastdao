@@ -36,7 +36,7 @@ namespace Azavea.Open.DAO
     /// 
     /// This class, and any that extend it, should be thread safe.
     /// </summary>
-    public abstract class ConnectionDescriptor
+    public abstract class ConnectionDescriptor : IConnectionDescriptor
     {
         /// <summary>
         /// The log4net logger which child classes may use to log any appropriate messages.
@@ -61,7 +61,7 @@ namespace Azavea.Open.DAO
         /// <param name="cfg">Config to load the descriptor info from.</param>
         /// <param name="section">What section of that config has the DB connection info in it.</param>
         /// <returns>A fully populated ConnectionDescriptor.</returns>
-        public static ConnectionDescriptor LoadFromConfig(Config cfg, string section)
+        public static IConnectionDescriptor LoadFromConfig(Config cfg, string section)
         {
             return LoadFromConfig(cfg, section, null);
         }
@@ -85,7 +85,7 @@ namespace Azavea.Open.DAO
         /// <param name="decryptionDelegate">Method to call to decrypt information, if the actual
         ///                                  connection descriptor type supports decryption.  May be null.</param>
         /// <returns>A fully populated ConnectionDescriptor.</returns>
-        public static ConnectionDescriptor LoadFromConfig(Config cfg, string section,
+        public static IConnectionDescriptor LoadFromConfig(Config cfg, string section,
             ConnectionInfoDecryptionDelegate decryptionDelegate)
         {
             if (!cfg.ComponentExists(section))
@@ -93,7 +93,7 @@ namespace Azavea.Open.DAO
                 throw new BadDaoConfigurationException("Config section " + section +
                                                        " does not exist in " + cfg.Application);
             }
-            ConnectionDescriptor retVal;
+            IConnectionDescriptor retVal;
             // First see if we're redirected to another config and/or section.
             if (cfg.ParameterExists(section, "ConnectionConfig") ||
                 cfg.ParameterExists(section, "ConnectionConfigSection"))
@@ -128,7 +128,7 @@ namespace Azavea.Open.DAO
                     throw new BadDaoConfigurationException("DescriptorClass '" + typeName +
                                                            "' was specified, but we were unable to get constructor info.");
                 }
-                retVal = (ConnectionDescriptor)constr.Invoke(new object[] { cfg, section, decryptionDelegate });
+                retVal = (IConnectionDescriptor)constr.Invoke(new object[] { cfg, section, decryptionDelegate });
             }
             return retVal;
         }
@@ -184,7 +184,7 @@ namespace Azavea.Open.DAO
             {
                 return false;
             }
-            return StringHelper.SafeEquals(ToCompleteString(), ((ConnectionDescriptor)obj).ToCompleteString());
+            return StringHelper.SafeEquals(ToCompleteString(), ((IConnectionDescriptor)obj).ToCompleteString());
         }
 
         /// <summary>

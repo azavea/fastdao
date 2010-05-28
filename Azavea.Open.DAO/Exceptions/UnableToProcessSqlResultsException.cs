@@ -40,7 +40,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="sql">SQL statement we were executed.</param>
         /// <param name="sqlParams">Parameters for the sql statement (may be null).</param>
         /// <param name="e">Exception that was thrown by the delegate.</param>
-        public UnableToProcessSqlResultsException(ConnectionDescriptor desc, string sql,
+        public UnableToProcessSqlResultsException(IConnectionDescriptor desc, string sql,
                                                   IEnumerable sqlParams, Exception e)
             : base("Exception while processing results from SQL statement: " +
                    SqlUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)
@@ -55,7 +55,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="sql">SQL statement we executed.</param>
         /// <param name="sqlParams">Parameters for the sql statement (may be null).</param>
         /// <param name="e">Exception that was thrown by the delegate.</param>
-        public UnableToProcessSqlResultsException(string message, ConnectionDescriptor desc, string sql,
+        public UnableToProcessSqlResultsException(string message, IConnectionDescriptor desc, string sql,
                                                   IEnumerable sqlParams, Exception e)
             : base(message + " " +
                    SqlUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)

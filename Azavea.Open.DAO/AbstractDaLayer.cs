@@ -26,6 +26,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Azavea.Open.DAO.Criteria;
+using Azavea.Open.DAO.Criteria.Grouping;
 using Azavea.Open.DAO.Exceptions;
 using Azavea.Open.DAO.Util;
 using log4net;
@@ -49,7 +50,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// The connection descriptor that is being used by this FastDaoLayer.
         /// </summary>
-        protected readonly ConnectionDescriptor _connDesc;
+        protected readonly IConnectionDescriptor _connDesc;
 
         #region Properties Defining What Is Supported On This Layer
 
@@ -84,7 +85,7 @@ namespace Azavea.Open.DAO
         /// <param name="supportsNumRecords">If true, methods that return numbers of records affected will be
         ///                                 returning accurate numbers.  If false, they will probably return
         ///                                 FastDAO.UNKNOWN_NUM_ROWS.</param>
-        protected AbstractDaLayer(ConnectionDescriptor connDesc, bool supportsNumRecords)
+        protected AbstractDaLayer(IConnectionDescriptor connDesc, bool supportsNumRecords)
         {
             _connDesc = connDesc;
             _supportsNumRecords = supportsNumRecords;
@@ -114,13 +115,14 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Deletes a data object record using the mapping and criteria for what's deleted.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The mapping of the table from which to delete.</param>
         /// <param name="crit">Criteria for deletion.  NOTE: Only the expressions are observed,
         ///                    other things (like "order" or start / limit) are ignored.
         ///                    WARNING: A null or empty (no expression) criteria will 
         ///                    delete ALL records!</param>
         /// <returns>The number of records affected.</returns>
-        public abstract int Delete(ClassMapping mapping, DaoCriteria crit);
+        public abstract int Delete(ITransaction transaction, ClassMapping mapping, DaoCriteria crit);
 
         /// <summary>
         /// Deletes all contents of the table.  Faster for large tables than DeleteAll,
@@ -135,35 +137,49 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Inserts a data object record using the "table" and a list of column/value pairs.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="propValues">A dictionary of "column"/value pairs for the object to insert.</param>
         /// <returns>The number of records affected.</returns>
-        public abstract int Insert(ClassMapping mapping, IDictionary<string, object> propValues);
+        public abstract int Insert(ITransaction transaction, ClassMapping mapping, IDictionary<string, object> propValues);
 
         /// <summary>
-        /// Inserts a list of data object records of the same type.
+        /// Inserts a list of data object records of the same type.  The default implementation
+        /// merely calls Insert for each one, however some datasources may have more efficient
+        /// ways of inserting multiple records that the appropriate DaLayer will take advantage of.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="propValueDictionaries">A list of dictionaries of column/value pairs.  
         ///                                     Each item in the list should represent the dictionary of column/value pairs for 
         ///                                     each respective object being inserted.</param>
-        public abstract void InsertBatch(ClassMapping mapping, List<IDictionary<string, object>> propValueDictionaries);
+        public virtual void InsertBatch(ITransaction transaction, ClassMapping mapping, List<IDictionary<string, object>> propValueDictionaries)
+        {
+            foreach(Dictionary<string, object> propValues in propValueDictionaries)
+            {
+                Insert(transaction, mapping, propValues);
+            }
+        }
         #endregion
 
         #region Update
         /// <summary>
         /// Updates a data object record using the "table" and a list of column/value pairs.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="crit">All records matching this criteria will be updated per the dictionary of
         ///                    values.</param>
         /// <param name="propValues">A dictionary of column/value pairs for all non-ID columns to be updated.</param>
         /// <returns>The number of records affected.</returns>
-        public abstract int Update(ClassMapping mapping, DaoCriteria crit, IDictionary<string, object> propValues);
+        public abstract int Update(ITransaction transaction, ClassMapping mapping, DaoCriteria crit, IDictionary<string, object> propValues);
 
         /// <summary>
-        /// Updates a list of data object records of the same type.
+        /// Updates a list of data object records of the same type.  The default implementation
+        /// merely calls Update for each one, however some datasources may have more efficient
+        /// ways of inserting multiple records that the appropriate DaLayer will take advantage of.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="criteriaList">A list of DaoCriteria.
         ///                            Each item in the list should represent the criteria for 
@@ -171,8 +187,14 @@ namespace Azavea.Open.DAO
         /// <param name="propValueDictionaries">A list of dictionaries of column/value pairs.
         ///                                   Each item in the list should represent the dictionary of non-ID column/value pairs for 
         ///                                   each respective object being updated.</param>
-        public abstract void UpdateBatch(ClassMapping mapping, List<DaoCriteria> criteriaList,
-                                         List<IDictionary<string, object>> propValueDictionaries);
+        public virtual void UpdateBatch(ITransaction transaction, ClassMapping mapping, List<DaoCriteria> criteriaList,
+                                         List<IDictionary<string, object>> propValueDictionaries)
+        {
+            for (int i = 0; i < criteriaList.Count; i++)
+            {
+                Update(transaction, mapping, criteriaList[i], propValueDictionaries[i]);
+            }
+        }
         #endregion
 
         #region Querying
@@ -190,13 +212,14 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Executes a query and invokes a method with a DataReader of results.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">Class mapping for the table we're querying against.  Optional,
         ///                       but not all columns may be properly typed if it is null.</param>
         /// <param name="query">The query to execute, should have come from CreateQuery.</param>
         /// <param name="invokeMe">The method to invoke with the IDataReader results.</param>
         /// <param name="parameters">A hashtable containing any values that need to be persisted through invoked method.
         ///                          The list of objects from the query will be placed here.</param>
-        public abstract void ExecuteQuery(ClassMapping mapping, IDaQuery query, DataReaderDelegate invokeMe, Hashtable parameters);
+        public abstract void ExecuteQuery(ITransaction transaction, ClassMapping mapping, IDaQuery query, DataReaderDelegate invokeMe, Hashtable parameters);
 
         /// <summary>
         /// Should be called when you're done with the query.  Allows us to cache the
@@ -208,10 +231,26 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Gets a count of records for the given criteria.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The mapping of the table for which to build the query string.</param>
         /// <param name="crit">The criteria to use for "where" comparisons.</param>
         /// <returns>The number of results found that matched the criteria.</returns>
-        public abstract int GetCount(ClassMapping mapping, DaoCriteria crit);
+        public abstract int GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit);
+
+        /// <summary>
+        /// Gets a count of records for the given criteria,
+        /// aggregated by the given grouping expressions.  This matches "GROUP BY" behavior
+        /// in SQL.
+        /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="mapping">The mapping of the table for which to build the query string.</param>
+        /// <param name="crit">The criteria to use for "where" comparisons.</param>
+        /// <param name="groupExpressions">The fields/expressions to aggregate on when counting.</param>
+        /// <returns>The number of objects that match the criteria, plus the values of those objects
+        ///          for the fields that were aggregated on.</returns>
+        public abstract List<GroupCountResult> GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit,
+                                                        ICollection<AbstractGroupExpression> groupExpressions);
+
         #endregion
 
         #region Utility Methods
@@ -376,15 +415,18 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Finds the last generated id number for a column.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="mapping">The class mapping for the table being queried.</param>
         /// <param name="idCol">The ID column for which to find the last-generated ID.</param>
-        public abstract object GetLastAutoGeneratedId(ClassMapping mapping, string idCol);
+        public abstract object GetLastAutoGeneratedId(ITransaction transaction, ClassMapping mapping, string idCol);
+
         /// <summary>
         /// Gets the next id number from a sequence in the data source.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="sequenceName">The name of the sequence.</param>
         /// <returns>The next number from the sequence.</returns>
-        public abstract int GetNextSequenceValue(string sequenceName);
+        public abstract int GetNextSequenceValue(ITransaction transaction, string sequenceName);
         #endregion
     }
 }

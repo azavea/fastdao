@@ -44,7 +44,7 @@ namespace Azavea.Open.DAO.Unqueryable
         /// <param name="supportsNumRecords">If true, methods that return numbers of records affected will be
         ///                                 returning accurate numbers.  If false, they will probably return
         ///                                 FastDAO.UNKNOWN_NUM_ROWS.</param>
-        protected UnqueryableDaLayer(ConnectionDescriptor connDesc, bool supportsNumRecords)
+        protected UnqueryableDaLayer(IConnectionDescriptor connDesc, bool supportsNumRecords)
             : base(connDesc, supportsNumRecords)
         {
         }

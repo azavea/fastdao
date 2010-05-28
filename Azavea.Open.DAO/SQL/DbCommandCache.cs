@@ -105,6 +105,8 @@ namespace Azavea.Open.DAO.SQL
                 {
                     // Make sure we don't keep some random set of values for the params.
                     cmd.Parameters.Clear();
+                    // It may have been used on a transaction, so clear that out.
+                    cmd.Transaction = null;
                     // No command for this key, go ahead and cache it.
                     _cache[key] = cmd;
                 } // else just discard this one, our cache is tolerant of sloppy usage.

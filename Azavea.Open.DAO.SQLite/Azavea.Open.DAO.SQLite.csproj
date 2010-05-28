@@ -41,19 +41,35 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite, Version=1.0.66.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\System.Data.SQLite.DLL</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SQLiteDescriptor.cs" />
+    <Compile Include="Tests\SQLiteBasicTests.cs" />
+    <Compile Include="Tests\SQLiteDaoTests.cs" />
+    <Compile Include="Tests\SQLiteJoinTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Azavea.Open.Common\Azavea.Open.Common.csproj">
+      <Project>{ADBFE412-4F06-454A-AAF5-E93719E3B1FD}</Project>
+      <Name>Azavea.Open.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Azavea.Open.DAO\Azavea.Open.DAO.csproj">
       <Project>{A510DDB6-F817-4610-B08C-305EB937CE4F}</Project>
       <Name>Azavea.Open.DAO</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Tests\" />
+    <None Include="Tests\BasicTest.config" />
+    <None Include="Tests\SQLiteDao.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Tests\Mapping.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -38,7 +38,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="message">What happened.</param>
         /// <param name="desc">The connection info will be appended to the message.</param>
         /// <param name="e">Inner exception that caused this one to be thrown.</param>
-        public ExceptionWithConnectionInfo(string message, ConnectionDescriptor desc,
+        public ExceptionWithConnectionInfo(string message, IConnectionDescriptor desc,
                                            Exception e)
             : base(message + "  Connection info: " + desc, e)
         {

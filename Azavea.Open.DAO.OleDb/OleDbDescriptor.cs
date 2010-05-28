@@ -512,6 +512,22 @@ namespace Azavea.Open.DAO.OleDb
             }
         }
 
+        public override bool NeedAsForColumnAliases()
+        {
+            switch (Type)
+            {
+                case DatabaseType.ORACLE:
+                    return false;
+                case DatabaseType.SQLSERVER:
+                    return false;
+                case DatabaseType.ACCESS:
+                    return true;
+                default:
+                    throw new NotImplementedException("Support for type " + Type +
+                                                      " is not yet fully implemented.");
+            }
+        }
+
         /// <exclude/>
         public override string ColumnAliasPrefix()
         {
@@ -522,7 +538,7 @@ namespace Azavea.Open.DAO.OleDb
                 case DatabaseType.SQLSERVER:
                     return "[";
                 case DatabaseType.ACCESS:
-                    return "";
+                    return "\"";
                 default:
                     throw new NotImplementedException("Support for type " + Type +
                                                       " is not yet fully implemented.");
@@ -539,7 +555,24 @@ namespace Azavea.Open.DAO.OleDb
                 case DatabaseType.SQLSERVER:
                     return "]";
                 case DatabaseType.ACCESS:
-                    return "";
+                    return "\"";
+                default:
+                    throw new NotImplementedException("Support for type " + Type +
+                                                      " is not yet fully implemented.");
+            }
+        }
+
+        /// <exclude/>
+        public override bool ColumnAliasWrappersInResults()
+        {
+            switch (Type)
+            {
+                case DatabaseType.ORACLE:
+                    return false;
+                case DatabaseType.SQLSERVER:
+                    return false;
+                case DatabaseType.ACCESS:
+                    return true;
                 default:
                     throw new NotImplementedException("Support for type " + Type +
                                                       " is not yet fully implemented.");

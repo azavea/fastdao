@@ -39,11 +39,11 @@ namespace Azavea.Open.DAO.SQL
         private readonly static ILog _log = LogManager.GetLogger(
             new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().DeclaringType.Namespace);
 
-        private readonly Dictionary<ConnectionDescriptor, TimestampedData<IDbConnection>> _cache =
-            new Dictionary<ConnectionDescriptor, TimestampedData<IDbConnection>>();
+        private readonly Dictionary<IConnectionDescriptor, TimestampedData<IDbConnection>> _cache =
+            new Dictionary<IConnectionDescriptor, TimestampedData<IDbConnection>>();
 
-        private readonly Dictionary<ConnectionDescriptor, int> _errorCount =
-            new Dictionary<ConnectionDescriptor, int>();
+        private readonly Dictionary<IConnectionDescriptor, int> _errorCount =
+            new Dictionary<IConnectionDescriptor, int>();
 
         /// <summary>
         /// This returns a connection from the cache, or creates a new one if necessary. 

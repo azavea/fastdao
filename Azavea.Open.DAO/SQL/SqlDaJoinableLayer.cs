@@ -65,7 +65,7 @@ namespace Azavea.Open.DAO.SQL
         /// <param name="rightConn">The connection info for the other DAO we're joining with.</param>
         /// <param name="rightMapping">Class mapping for the right table we would be querying against.</param>
         /// <returns>True if we can perform the join natively, false if we cannot.</returns>
-        public bool CanJoin<R>(DaoJoinCriteria crit, ConnectionDescriptor rightConn, ClassMapping rightMapping) where R : new()
+        public bool CanJoin<R>(DaoJoinCriteria crit, IConnectionDescriptor rightConn, ClassMapping rightMapping) where R : new()
         {
             if (!_connDesc.Equals(rightConn))
             {
@@ -137,7 +137,8 @@ namespace Azavea.Open.DAO.SQL
                 retVal.Sql.Append(leftPrefix).Append(leftCol);
                 if (_connDesc.NeedToAliasColumns())
                 {
-                    retVal.Sql.Append(" ").Append(_connDesc.ColumnAliasPrefix())
+                    retVal.Sql.Append(_connDesc.NeedAsForColumnAliases() ? " AS " : " ")
+                        .Append(_connDesc.ColumnAliasPrefix())
                         .Append(leftPrefix).Append(leftCol)
                         .Append(_connDesc.ColumnAliasSuffix());
                 }
@@ -155,7 +156,8 @@ namespace Azavea.Open.DAO.SQL
                 retVal.Sql.Append(rightPrefix).Append(rightCol);
                 if (_connDesc.NeedToAliasColumns())
                 {
-                    retVal.Sql.Append(" ").Append(_connDesc.ColumnAliasPrefix())
+                    retVal.Sql.Append(_connDesc.NeedAsForColumnAliases() ? " AS " : " ")
+                        .Append(_connDesc.ColumnAliasPrefix())
                         .Append(rightPrefix).Append(rightCol)
                         .Append(_connDesc.ColumnAliasSuffix());
                 }

@@ -40,7 +40,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="sql">SQL statement we were trying to execute.</param>
         /// <param name="sqlParams">Parameters for the sql statement (may be null).</param>
         /// <param name="e">Exception that was thrown by the database driver.</param>
-        public UnableToRunSqlException(ConnectionDescriptor desc, string sql,
+        public UnableToRunSqlException(IConnectionDescriptor desc, string sql,
                                        IEnumerable sqlParams, Exception e)
             : base("Database exception while trying to execute SQL statement: " +
                    SqlUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)
@@ -55,7 +55,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="sql">SQL statement we were trying to execute.</param>
         /// <param name="sqlParams">Parameters for the sql statement (may be null).</param>
         /// <param name="e">Exception that was thrown by the database driver.</param>
-        public UnableToRunSqlException(string message, ConnectionDescriptor desc, string sql,
+        public UnableToRunSqlException(string message, IConnectionDescriptor desc, string sql,
                                        IEnumerable sqlParams, Exception e)
             : base(message + " " +
                    SqlUtilities.SqlParamsToString(sql, sqlParams) + ".", desc, e)

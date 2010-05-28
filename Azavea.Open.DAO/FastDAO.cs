@@ -29,6 +29,7 @@ using System.Reflection;
 using System.Xml;
 using Azavea.Open.Common;
 using Azavea.Open.DAO.Criteria;
+using Azavea.Open.DAO.Criteria.Grouping;
 using Azavea.Open.DAO.Criteria.Joins;
 using Azavea.Open.DAO.Exceptions;
 using Azavea.Open.DAO.Util;
@@ -56,7 +57,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// The connection descriptor created from the connection config parameters.
         /// </summary>
-        private readonly ConnectionDescriptor _connDesc;
+        private readonly IConnectionDescriptor _connDesc;
 
         /// <summary>
         /// The ClassMapping object representing the class-to-table mapping 
@@ -89,7 +90,7 @@ namespace Azavea.Open.DAO
         /// The object describing how to connect to and/or interact with the data
         /// source we're reading objects from.
         /// </summary>
-        public ConnectionDescriptor ConnDesc
+        public IConnectionDescriptor ConnDesc
         {
             get { return _connDesc; }
         }
@@ -150,7 +151,7 @@ namespace Azavea.Open.DAO
         /// </summary>
         /// <param name="connDesc">DB Connection information.</param>
         /// <param name="mappingFileName">Filename (with path) to the mapping file.</param>
-        public FastDAO(ConnectionDescriptor connDesc, string mappingFileName) :
+        public FastDAO(IConnectionDescriptor connDesc, string mappingFileName) :
             this(connDesc, ParseHibernateConfig(typeof(T), mappingFileName))
         {
         }
@@ -162,7 +163,7 @@ namespace Azavea.Open.DAO
         /// <param name="connDesc">DB Connection information.</param>
         /// <param name="mapping">ClassMapping describing the class to be mapped and
         ///                       the table to map it to.</param>
-        public FastDAO(ConnectionDescriptor connDesc, ClassMapping mapping)
+        public FastDAO(IConnectionDescriptor connDesc, ClassMapping mapping)
         {
             if (connDesc == null)
             {
@@ -245,7 +246,7 @@ namespace Azavea.Open.DAO
             {
                 crit.Expressions.Add(new EqualExpression(propName, GetValueFromObject(dataObject, propName)));
             }
-            int numRecs = _dataAccessLayer.Delete(_classMap, crit);
+            int numRecs = _dataAccessLayer.Delete(null, _classMap, crit);
 
             if ((numRecs != 1) && (numRecs != UNKNOWN_NUM_ROWS))
             {
@@ -281,7 +282,7 @@ namespace Azavea.Open.DAO
                 throw new ArgumentNullException("crit",
                                                 "Critera must be non-null and must contain at least one expression.  To delete all records, use the DeleteAll method.");
             }
-            return _dataAccessLayer.Delete(_classMap, crit);
+            return _dataAccessLayer.Delete(null, _classMap, crit);
         }
 
         /// <summary>
@@ -290,7 +291,7 @@ namespace Azavea.Open.DAO
         /// <returns>The number of rows/objects deleted.</returns>
         public virtual int DeleteAll()
         {
-            return _dataAccessLayer.Delete(_classMap, null);
+            return _dataAccessLayer.Delete(null, _classMap, null);
         }
 
         /// <summary>
@@ -334,11 +335,11 @@ namespace Azavea.Open.DAO
             // If it has a valid ID, it's probably already been saved so we should try and update.
             if (IsIDValid(obj))
             {
-                SaveRecord(obj, true, true, setGeneratedId);
+                SaveRecord(null, obj, true, true, setGeneratedId);
             }
             else // otherwise, only try to insert.
             {
-                SaveRecord(obj, false, true, setGeneratedId);
+                SaveRecord(null, obj, false, true, setGeneratedId);
             }
         }
         #endregion
@@ -360,7 +361,7 @@ namespace Azavea.Open.DAO
         ///                              value anyway.</param>
         public void Insert(T obj, bool setGeneratedId)
         {
-            SaveRecord(obj, false, true, setGeneratedId);
+            SaveRecord(null, obj, false, true, setGeneratedId);
         }
 
         /// <summary>
@@ -396,7 +397,7 @@ namespace Azavea.Open.DAO
 
             if (propValueDictionaries.Count > 0)
             {
-                _dataAccessLayer.InsertBatch(_classMap, propValueDictionaries);
+                _dataAccessLayer.InsertBatch(null, _classMap, propValueDictionaries);
             }
             else
             {
@@ -414,7 +415,7 @@ namespace Azavea.Open.DAO
         /// <param name="obj">The object to save.</param>
         public virtual void Update(T obj)
         {
-            SaveRecord(obj, true, false, false);
+            SaveRecord(null, obj, true, false, false);
         }
 
         /// <summary>
@@ -442,7 +443,7 @@ namespace Azavea.Open.DAO
 
             if (criteriaList.Count > 0)
             {
-                _dataAccessLayer.UpdateBatch(_classMap, criteriaList, propValueDictionaries);
+                _dataAccessLayer.UpdateBatch(null, _classMap, criteriaList, propValueDictionaries);
             }
             else
             {
@@ -535,7 +536,7 @@ namespace Azavea.Open.DAO
                 }
             }
             IDaQuery query = _dataAccessLayer.CreateQuery(_classMap, crit);
-            _dataAccessLayer.ExecuteQuery(_classMap, query, CreateObjectsFromReader, parameters);
+            _dataAccessLayer.ExecuteQuery(null, _classMap, query, CreateObjectsFromReader, parameters);
             _dataAccessLayer.DisposeOfQuery(query);
 
             IList<T> items = (IList<T>)parameters["items"];
@@ -550,7 +551,20 @@ namespace Azavea.Open.DAO
         /// </summary>
         public virtual int GetCount(DaoCriteria crit)
         {
-            return _dataAccessLayer.GetCount(_classMap, crit);
+            return _dataAccessLayer.GetCount(null, _classMap, crit);
+        }
+
+        /// <summary>
+        /// Returns the number of objects of the specified type matching the given criteria,
+        /// aggregated by the given grouping expressions.  This matches "GROUP BY" behavior
+        /// in SQL.
+        /// </summary>
+        /// <param name="crit">The criteria that you wish the objects to match.  Start/limit and order are ignored.</param>
+        /// <param name="groupExpressions">The fields/expressions to aggregate on when counting.</param>
+        /// <returns>The number of objects that match the criteria.</returns>
+        public virtual List<GroupCountResult> GetCount(DaoCriteria crit, ICollection<AbstractGroupExpression> groupExpressions)
+        {
+            return _dataAccessLayer.GetCount(null, _classMap, crit, groupExpressions);
         }
 
         /// <summary>
@@ -605,7 +619,7 @@ namespace Azavea.Open.DAO
                         _classMap, rightDao.ClassMap);
                 parameters["leftPrefix"] = query.GetLeftColumnPrefix();
                 parameters["rightPrefix"] = query.GetRightColumnPrefix();
-                _dataAccessLayer.ExecuteQuery(_classMap, query,
+                _dataAccessLayer.ExecuteQuery(null, _classMap, query,
                                               CreateJoinObjectsFromReader<R>, parameters);
                 _dataAccessLayer.DisposeOfQuery(query);
 
@@ -920,7 +934,7 @@ namespace Azavea.Open.DAO
                         break;
                     case GeneratorType.SEQUENCE:
                         string sequenceName = _classMap.IdSequencesByDataCol[colName];
-                        int id = _dataAccessLayer.GetNextSequenceValue(sequenceName);
+                        int id = _dataAccessLayer.GetNextSequenceValue(null, sequenceName);
                         // Use the ID we got from the sequence.
                         cols[colName] = id;
                         // Since we have the ID anyway, save the ID back to the object.
@@ -941,21 +955,23 @@ namespace Azavea.Open.DAO
         /// However sometimes it is inconvenient to determine first whether the record exists,
         /// which is why this method exists.
         /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
         /// <param name="dataObject">An implementation-specific data object.  For example, if the
         ///                            implementation class is "Topic", dataObject would be expected
         ///                            to be type "TopicRecord".  An ArgumentException will be thrown
         ///                            if it is not the correct type.</param>
-        ///    <param name="allowUpdate">If this is true, an existing record will be updated if one
-        ///                              exists.  If allowInsert is false, only an update will be
-        ///                              attempted.</param>
-        ///    <param name="allowInsert">If this is true, a new record will be inserted if there is not
-        ///                              one already present to update.  If allowUpdate is false, only
-        ///                              an insert will be attempted.</param>
-        ///    <param name="setGeneratedId">If this is true, if the action is an insert, then the object
-        ///                                 that is inserted will have ID fields that were generated by
-        ///                                 the database filled in.  This is supported differently on
-        ///                                 different databases.</param>
-        protected virtual void SaveRecord(T dataObject, bool allowUpdate, bool allowInsert, bool setGeneratedId)
+        /// <param name="allowUpdate">If this is true, an existing record will be updated if one
+        ///                           exists.  If allowInsert is false, only an update will be
+        ///                           attempted.</param>
+        /// <param name="allowInsert">If this is true, a new record will be inserted if there is not
+        ///                           one already present to update.  If allowUpdate is false, only
+        ///                           an insert will be attempted.</param>
+        /// <param name="setGeneratedId">If this is true, if the action is an insert, then the object
+        ///                              that is inserted will have ID fields that were generated by
+        ///                              the database filled in.  This is supported differently on
+        ///                              different databases.</param>
+        protected virtual void SaveRecord(ITransaction transaction, T dataObject, bool allowUpdate,
+            bool allowInsert, bool setGeneratedId)
         {
             if (!allowUpdate && !allowInsert)
             {
@@ -976,7 +992,7 @@ namespace Azavea.Open.DAO
             {
                 DaoCriteria idCrit = DbCaches.Criteria.Get();
                 PopulateIDCriteria(dataObject, idCrit, _classMap);
-                int numRecs = _dataAccessLayer.Update(_classMap, idCrit, colsToWrite);
+                int numRecs = _dataAccessLayer.Update(transaction, _classMap, idCrit, colsToWrite);
                 DbCaches.Criteria.Return(idCrit);
 
                 // If numRecs is zero, there was no record to update.  If allowInsert
@@ -1014,11 +1030,40 @@ namespace Azavea.Open.DAO
             {
                 ProcessIdColumnsForInsert(dataObject, idCols, colsToWrite);
 
-                _dataAccessLayer.Insert(_classMap, colsToWrite);
-
-                if (setGeneratedId)
+                bool startedTrans = false;
+                if ((transaction == null) && (_connDesc is ITransactionalConnectionDescriptor))
                 {
-                    PostInsert(dataObject);
+                    transaction = ((ITransactionalConnectionDescriptor)_connDesc).BeginTransaction();
+                    startedTrans = true;
+                }
+                try
+                {
+                    _dataAccessLayer.Insert(transaction, _classMap, colsToWrite);
+                    if (setGeneratedId)
+                    {
+                        PostInsert(transaction, dataObject);
+                    }
+                    if (startedTrans)
+                    {
+                        transaction.Commit();
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (startedTrans)
+                    {
+                        try
+                        {
+                            transaction.Rollback();
+                        }
+                        catch (Exception e2)
+                        {
+                            // Don't throw, since we don't want to lose the original exception.
+                            _log.Warn("Caught an exception while trying to rollback the transaction.", e2);
+                        }
+                    }
+                    throw new ExceptionWithConnectionInfo(
+                        "Error while inserting or running post-insert.", _connDesc, e);
                 }
             }
 
@@ -1034,16 +1079,19 @@ namespace Azavea.Open.DAO
         /// NOTE: This appears to only be called if setGeneratedId is true, which means NOT
         ///       after every insert!
         /// </summary>
+        /// <param name="currentTransaction">The current transaction (if there is one) that we're
+        ///                                  executing as part of.</param>
         /// <param name="insertee">Object that was just inserted into the DB.</param>
-        protected virtual void PostInsert(T insertee)
+        protected virtual void PostInsert(ITransaction currentTransaction, T insertee)
         {
             // Check ID type, only need to do something if it's auto-generated.
             foreach (string idCol in _classMap.IdDataColsByObjAttrs.Values)
             {
                 if (_classMap.IdGeneratorsByDataCol[idCol] == GeneratorType.AUTO)
                 {
-                    SetValueOnObject(insertee, _classMap, idCol,
-                                     _dataAccessLayer.GetLastAutoGeneratedId(_classMap, idCol));
+                    object lastGeneratedId = _dataAccessLayer.GetLastAutoGeneratedId(
+                        currentTransaction, _classMap, idCol);
+                    SetValueOnObject(insertee, _classMap, idCol, lastGeneratedId);
                 }
             }
         }
@@ -1235,7 +1283,7 @@ namespace Azavea.Open.DAO
             myParameters["max"] = max;
             myParameters["desc"] = desc;
 
-            _dataAccessLayer.ExecuteQuery(_classMap, query,
+            _dataAccessLayer.ExecuteQuery(null, _classMap, query,
                                           IterateOverObjectsFromReader<P>, myParameters);
 
             int retVal = (int)myParameters["count"];

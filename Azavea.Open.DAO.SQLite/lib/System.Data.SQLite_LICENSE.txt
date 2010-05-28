@@ -1,0 +1,6 @@
+ADO.NET 2.0/3.5 SQLite Data Provider
+Version 1.0.66.0 April 18, 2010
+Using SQLite 3.6.23.1
+Written by Robert Simpson (robert@blackcastlesoft.com)
+Released to the public domain, use at your own risk!
+Official provider website:  http://sqlite.phxsoftware.com

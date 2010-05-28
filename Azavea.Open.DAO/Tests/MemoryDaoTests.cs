@@ -32,7 +32,8 @@ namespace Azavea.Open.DAO.Tests
     {
         /// <exclude/>
         public MemoryDaoTests()
-            : base(new Config("..\\..\\Tests\\MemoryDao.config", "MemoryDaoConfig"), "DAO", true, true, false) { }
+            : base(new Config("..\\..\\Tests\\MemoryDao.config", "MemoryDaoConfig"), "DAO",
+            true, true, false, false, false) { }
 
         /// <exclude/>
         [TestFixtureSetUp]

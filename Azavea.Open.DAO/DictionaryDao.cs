@@ -110,7 +110,7 @@ namespace Azavea.Open.DAO
         ///                          config file and doesn't have to be a real class.</param>
         /// <param name="connDesc">Data source Connection information.</param>
         /// <param name="mappingFileName">Filename (with path) to the mapping file.</param>
-        public DictionaryDao(string mappedType, ConnectionDescriptor connDesc, string mappingFileName) :
+        public DictionaryDao(string mappedType, IConnectionDescriptor connDesc, string mappingFileName) :
             this(connDesc, ParseHibernateConfig(mappedType, mappingFileName))
         {
         }
@@ -122,7 +122,7 @@ namespace Azavea.Open.DAO
         /// <param name="connDesc">Data source Connection information.</param>
         /// <param name="mapping">ClassMapping describing the class to be mapped and
         ///                       the table to map it to.</param>
-        public DictionaryDao(ConnectionDescriptor connDesc, ClassMapping mapping)
+        public DictionaryDao(IConnectionDescriptor connDesc, ClassMapping mapping)
             : base(connDesc, mapping)
         {
         }

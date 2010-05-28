@@ -29,6 +29,7 @@ using System.Text;
 using Azavea.Open.Common;
 using Azavea.Open.Common.Collections;
 using Azavea.Open.DAO.Criteria;
+using Azavea.Open.DAO.Criteria.Grouping;
 using Azavea.Open.DAO.Exceptions;
 using Azavea.Open.DAO.Unqueryable;
 using Azavea.Open.DAO.Util;
@@ -60,13 +61,14 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Deletes a data object record using the mapping and criteria for what's deleted.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="crit">Criteria for deletion.  NOTE: Only the expressions are observed,
         ///                    other things (like "order" or start / limit) are ignored.
         ///                    WARNING: A null or empty (no expression) criteria will 
         ///                    delete ALL records!</param>
         /// <param name="mapping">The mapping of the table from which to delete.</param>
         /// <returns>The number of records affected.</returns>
-        public override int Delete(ClassMapping mapping, DaoCriteria crit)
+        public override int Delete(ITransaction transaction, ClassMapping mapping, DaoCriteria crit)
         {
             switch (_connDesc.Type)
             {
@@ -322,10 +324,11 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Inserts a data object record using the "table" and a list of column/value pairs.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="propValues">A dictionary of "column"/value pairs for the object to insert.</param>
         /// <returns>The number of records affected.</returns>
-        public override int Insert(ClassMapping mapping, IDictionary<string, object> propValues)
+        public override int Insert(ITransaction transaction, ClassMapping mapping, IDictionary<string, object> propValues)
         {
             switch (_connDesc.Type)
             {
@@ -357,11 +360,12 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Inserts a list of data object records of the same type.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="propValueDictionaries">A list of dictionaries of column/value pairs.  
         ///                                     Each item in the list should represent the dictionary of column/value pairs for 
         ///                                     each respective object being inserted.</param>
-        public override void InsertBatch(ClassMapping mapping, List<IDictionary<string, object>> propValueDictionaries)
+        public override void InsertBatch(ITransaction transaction, ClassMapping mapping, List<IDictionary<string, object>> propValueDictionaries)
         {
             switch (_connDesc.Type)
             {
@@ -395,12 +399,13 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Updates a data object record using the "table" and a list of column/value pairs.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="crit">All records matching this criteria will be updated per the dictionary of
         ///                    values.</param>
         /// <param name="propValues">A dictionary of column/value pairs for all non-ID columns to be updated.</param>
         /// <returns>The number of records affected.</returns>
-        public override int Update(ClassMapping mapping, DaoCriteria crit, IDictionary<string, object> propValues)
+        public override int Update(ITransaction transaction, ClassMapping mapping, DaoCriteria crit, IDictionary<string, object> propValues)
         {
             switch (_connDesc.Type)
             {
@@ -492,6 +497,7 @@ namespace Azavea.Open.DAO.CSV
         /// Updates a list of data object records of the same type.
         /// NOTE: At the moment this just loops calling Update().
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="criteriaList">A list of DaoCriteria.
         ///                            Each item in the list should represent the criteria for 
@@ -499,7 +505,7 @@ namespace Azavea.Open.DAO.CSV
         /// <param name="propValueDictionaries">A list of dictionaries of column/value pairs.
         ///                                   Each item in the list should represent the dictionary of non-ID column/value pairs for 
         ///                                   each respective object being updated.</param>
-        public override void UpdateBatch(ClassMapping mapping, List<DaoCriteria> criteriaList, List<IDictionary<string, object>> propValueDictionaries)
+        public override void UpdateBatch(ITransaction transaction, ClassMapping mapping, List<DaoCriteria> criteriaList, List<IDictionary<string, object>> propValueDictionaries)
         {
             switch (_connDesc.Type)
             {
@@ -510,22 +516,20 @@ namespace Azavea.Open.DAO.CSV
                 default:
                     throw new LoggingException("Connection does not support updating in batch: " + _connDesc);
             }
-            for (int x = 0; x < criteriaList.Count; x++)
-            {
-                Update(mapping, criteriaList[x], propValueDictionaries[x]);
-            }
+            base.UpdateBatch(transaction, mapping, criteriaList, propValueDictionaries);
         }
 
         /// <summary>
         /// Executes a query and invokes a method with a DataReader of results.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="mapping">Class mapping for the table we're querying against.  Optional,
         ///                       but not all columns may be properly typed if it is null.</param>
         /// <param name="query">The query to execute, should have come from CreateQuery.</param>
         /// <param name="invokeMe">The method to invoke with the IDataReader results.</param>
         /// <param name="parameters">A hashtable containing any values that need to be persisted through invoked method.
         ///                          The list of objects from the query will be placed here.</param>
-        public override void ExecuteQuery(ClassMapping mapping, IDaQuery query, DataReaderDelegate invokeMe, Hashtable parameters)
+        public override void ExecuteQuery(ITransaction transaction, ClassMapping mapping, IDaQuery query, DataReaderDelegate invokeMe, Hashtable parameters)
         {
             switch (_connDesc.Type)
             {
@@ -551,9 +555,10 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Finds the last generated id number for a column.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="mapping">The class mapping for the table being queried.</param>
         /// <param name="idCol">The ID column for which to find the last-generated ID.</param>
-        public override object GetLastAutoGeneratedId(ClassMapping mapping, string idCol)
+        public override object GetLastAutoGeneratedId(ITransaction transaction, ClassMapping mapping, string idCol)
         {
             throw new NotImplementedException("CSVs can't autogenerate IDs.");
         }
@@ -561,9 +566,10 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Gets the next id number from a sequence in the data source.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="sequenceName">The name of the sequence.</param>
         /// <returns>The next number from the sequence.</returns>
-        public override int GetNextSequenceValue(string sequenceName)
+        public override int GetNextSequenceValue(ITransaction transaction, string sequenceName)
         {
             throw new NotImplementedException("CSVs don't have sequences.");
         }
@@ -571,10 +577,11 @@ namespace Azavea.Open.DAO.CSV
         /// <summary>
         /// Gets a count of records for the given criteria.
         /// </summary>
+        /// <param name="transaction">Should be null, transactions are not supported.</param>
         /// <param name="crit">The criteria to use for "where" comparisons.</param>
         /// <param name="mapping">The mapping of the table for which to build the query string.</param>
         /// <returns>The number of results found that matched the criteria.</returns>
-        public override int GetCount(ClassMapping mapping, DaoCriteria crit)
+        public override int GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit)
         {
             switch (_connDesc.Type)
             {
@@ -600,6 +607,11 @@ namespace Azavea.Open.DAO.CSV
                 reader.Close();
             }
             return retVal;
+        }
+
+        public override List<GroupCountResult> GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit, ICollection<AbstractGroupExpression> groupExpressions)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

@@ -34,7 +34,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// </summary>
         /// <param name="desc">Connection descriptor we were using to try to connect.</param>
         /// <param name="message">A message describing what is wrong with the connection type.</param>
-        public BadConnectionTypeException(ConnectionDescriptor desc, string message)
+        public BadConnectionTypeException(IConnectionDescriptor desc, string message)
             : base(message, desc, null)
         {
             // Nothing to set here.

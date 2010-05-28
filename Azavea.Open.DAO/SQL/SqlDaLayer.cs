@@ -25,9 +25,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using System.Text;
 using Azavea.Open.Common.Caching;
+using Azavea.Open.Common.Collections;
 using Azavea.Open.DAO.Criteria;
+using Azavea.Open.DAO.Criteria.Grouping;
 using Azavea.Open.DAO.Exceptions;
 using Azavea.Open.DAO.Util;
 
@@ -99,13 +102,13 @@ namespace Azavea.Open.DAO.SQL
         #region IFastDaoLayer Members
 
         /// <exclude/>
-        public override int Insert(ClassMapping mapping, IDictionary<string, object> propValues)
+        public override int Insert(ITransaction transaction, ClassMapping mapping, IDictionary<string, object> propValues)
         {
             List<object> sqlParams = DbCaches.ObjectLists.Get();
 
             PreProcessPropertyValues(mapping.Table, propValues);
             string sql = SqlUtilities.MakeInsertStatement(mapping.Table, propValues, sqlParams);
-            int numRecs = SqlConnectionUtilities.XSafeCommand(_connDesc, sql, sqlParams);
+            int numRecs = SqlConnectionUtilities.XSafeCommand(_connDesc, (SqlTransaction)transaction, sql, sqlParams);
 
             if (numRecs != 1)
             {
@@ -119,34 +122,7 @@ namespace Azavea.Open.DAO.SQL
         }
 
         /// <exclude/>
-        public override void InsertBatch(ClassMapping mapping, List<IDictionary<string, object>> propValueDictionaries)
-        {
-            List<string> sqls = DbCaches.StringLists.Get();
-            List<IEnumerable> sqlParamLists = DbCaches.EnumerableLists.Get();
-
-            foreach(Dictionary<string, object> propValues in propValueDictionaries)
-            {
-                List<object> sqlParams = DbCaches.ObjectLists.Get();
-
-                PreProcessPropertyValues(mapping.Table, propValues);
-                string sql = SqlUtilities.MakeInsertStatement(mapping.Table, propValues, sqlParams);
-
-                sqls.Add(sql);
-                sqlParamLists.Add(sqlParams);
-            }
-
-            SqlConnectionUtilities.XSafeCommandBatch(_connDesc, sqls, sqlParamLists, true);
-
-            DbCaches.StringLists.Return(sqls);
-            foreach (List<object> objList in sqlParamLists)
-            {
-                DbCaches.ObjectLists.Return(objList);
-            }
-            DbCaches.EnumerableLists.Return(sqlParamLists);
-        }
-
-        /// <exclude/>
-        public override int Update(ClassMapping mapping, DaoCriteria crit, IDictionary<string, object> propValues)
+        public override int Update(ITransaction transaction, ClassMapping mapping, DaoCriteria crit, IDictionary<string, object> propValues)
         {
             PreProcessPropertyValues(mapping.Table, propValues);
 
@@ -175,7 +151,7 @@ namespace Azavea.Open.DAO.SQL
                 // Add the "where blah, blah, blah" part.
                 ExpressionsToQuery(query, crit, mapping);
 
-                return SqlConnectionUtilities.XSafeCommand(_connDesc, query.Sql.ToString(), query.Params);
+                return SqlConnectionUtilities.XSafeCommand(_connDesc, (SqlTransaction)transaction, query.Sql.ToString(), query.Params);
             }
             finally
             {
@@ -184,61 +160,7 @@ namespace Azavea.Open.DAO.SQL
         }
 
         /// <exclude/>
-        public override void UpdateBatch(ClassMapping mapping, List<DaoCriteria> criteriaList, 
-                                         List<IDictionary<string, object>> propValueDictionaries)
-        {
-            List<string> sqls = DbCaches.StringLists.Get();
-            List<IEnumerable> sqlParamLists = DbCaches.EnumerableLists.Get();
-
-            for (int i = 0; i < criteriaList.Count; i++)
-            {
-                SqlDaQuery query = _sqlQueryCache.Get();
-                IDictionary<string, object> propValues = propValueDictionaries[i];
-
-                PreProcessPropertyValues(mapping.Table, propValues);
-                // Make the "update table set blah = something" part.
-                query.Sql.Append("UPDATE ");
-                query.Sql.Append(mapping.Table);
-                query.Sql.Append(" SET ");
-                bool first = true;
-                foreach (string key in propValues.Keys)
-                {
-                    if (!first)
-                    {
-                        query.Sql.Append(", ");
-                    }
-                    else
-                    {
-                        first = false;
-                    }
-                    query.Sql.Append(key);
-                    query.Sql.Append(" = ?");
-                    query.Params.Add(propValues[key]);
-                }
-                // Add the "where blah, blah, blah" part.
-                ExpressionsToQuery(query, criteriaList[i], mapping);
-
-                sqls.Add(query.Sql.ToString());
-                // Have to clone the list, since we're about to return the query
-                // (and its list) to the cache.
-                List<object> paramList = DbCaches.ObjectLists.Get();
-                paramList.AddRange(query.Params);
-                sqlParamLists.Add(paramList);
-                _sqlQueryCache.Return(query);
-            }
-
-            SqlConnectionUtilities.XSafeCommandBatch(_connDesc, sqls, sqlParamLists, true);
-
-            DbCaches.StringLists.Return(sqls);
-            foreach (List<object> objList in sqlParamLists)
-            {
-                DbCaches.ObjectLists.Return(objList);
-            }
-            DbCaches.EnumerableLists.Return(sqlParamLists);
-        }
-
-        /// <exclude/>
-        public override int Delete(ClassMapping mapping, DaoCriteria crit)
+        public override int Delete(ITransaction transaction, ClassMapping mapping, DaoCriteria crit)
         {
             SqlDaQuery query = _sqlQueryCache.Get();
 
@@ -246,14 +168,14 @@ namespace Azavea.Open.DAO.SQL
             query.Sql.Append(mapping.Table);
             ExpressionsToQuery(query, crit, mapping);
 
-            int retVal = SqlConnectionUtilities.XSafeCommand(_connDesc, query.Sql.ToString(), query.Params);
+            int retVal = SqlConnectionUtilities.XSafeCommand(_connDesc, (SqlTransaction)transaction, query.Sql.ToString(), query.Params);
 
             DisposeOfQuery(query);
             return retVal;
         }
 
         /// <exclude/>
-        public override int GetCount(ClassMapping mapping, DaoCriteria crit)
+        public override int GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit)
         {
             SqlDaQuery query = _sqlQueryCache.Get();
 
@@ -261,10 +183,149 @@ namespace Azavea.Open.DAO.SQL
             query.Sql.Append(mapping.Table);
             ExpressionsToQuery(query, crit, mapping);
 
-            int retVal = SqlConnectionUtilities.XSafeIntQuery(_connDesc, query.Sql.ToString(), query.Params);
+            int retVal = SqlConnectionUtilities.XSafeIntQuery(_connDesc, (SqlTransaction)transaction, query.Sql.ToString(), query.Params);
 
             DisposeOfQuery(query);
             return retVal;
+        }
+
+        /// <exclude/>
+        public override List<GroupCountResult> GetCount(ITransaction transaction,
+            ClassMapping mapping, DaoCriteria crit,
+            ICollection<AbstractGroupExpression> groupExpressions)
+        {
+            SqlDaQuery query = _sqlQueryCache.Get();
+
+            query.Sql.Append("SELECT COUNT(*) ");
+            if (_connDesc.NeedAsForColumnAliases())
+            {
+                query.Sql.Append("AS ");
+            }
+            query.Sql.Append(_connDesc.ColumnAliasPrefix()).
+                Append("gb_count").Append(_connDesc.ColumnAliasSuffix());
+            GroupBysToStartOfQuery(query, groupExpressions, mapping);
+            query.Sql.Append(" FROM ");
+            query.Sql.Append(mapping.Table);
+            ExpressionsToQuery(query, crit, mapping);
+            GroupBysToEndOfQuery(query, groupExpressions, mapping);
+            OrdersToQuery(query, crit, mapping);
+            Hashtable parameters = DbCaches.Hashtables.Get();
+
+            parameters["groupBys"] = groupExpressions;
+            parameters["mapping"] = mapping;
+Console.WriteLine(query.Sql);
+            SqlConnectionUtilities.XSafeQuery(_connDesc, (SqlTransaction)transaction,
+                query.Sql.ToString(), query.Params, ReadGroupByCount, parameters);
+            List<GroupCountResult> retVal = (List<GroupCountResult>) parameters["results"];
+
+            DisposeOfQuery(query);
+            DbCaches.Hashtables.Return(parameters);
+            return retVal;
+        }
+
+        /// <summary>
+        /// Reads the results from the data reader produced by the group by
+        /// query, creates the GroupCountResults, and returns them in the 
+        /// parameters collection.
+        /// </summary>
+        /// <param name="parameters">Input and output parameters for the method.</param>
+        /// <param name="reader">Data reader to read from.</param>
+        protected virtual void ReadGroupByCount(Hashtable parameters, IDataReader reader)
+        {
+            ICollection<AbstractGroupExpression> groupExpressions =
+                (ICollection<AbstractGroupExpression>) parameters["groupBys"];
+            ClassMapping mapping = (ClassMapping) parameters["mapping"];
+            List<GroupCountResult> results = new List<GroupCountResult>();
+            parameters["results"] = results;
+
+            // Read each row and store it as a GroupCountResult.
+            while (reader.Read())
+            {
+                // We aliased the count as "gb_count".
+                // Some databases return other numeric types, like "decimal", so you can't
+                // just call reader.GetInt.
+                string colName = "gb_count";
+                if (_connDesc.ColumnAliasWrappersInResults())
+                {
+                    colName = _connDesc.ColumnAliasPrefix() + colName + _connDesc.ColumnAliasSuffix();
+                }
+                int count = (int)CoerceType(typeof(int), reader.GetValue(reader.GetOrdinal(colName)));
+                IDictionary<string, object> values = new CheckedDictionary<string, object>();
+                int groupByNum = 0;
+                foreach (AbstractGroupExpression expr in groupExpressions)
+                {
+                    values[expr.Name] = GetGroupByValue(mapping, reader, groupByNum, expr);
+                    groupByNum++;
+                }
+                results.Add(new GroupCountResult(count, values));
+            }
+        }
+
+        /// <summary>
+        /// Reads a single "group by" field value from the data reader, coerces it
+        /// to the correct type if necessary/possible, and returns it.
+        /// </summary>
+        /// <param name="mapping">Mapping of class fields / names / etc.</param>
+        /// <param name="reader">Data reader to get the value from.</param>
+        /// <param name="number">Which group by field is this (0th, 1st, etc).</param>
+        /// <param name="expression">The group by expression we're reading the value for.</param>
+        /// <returns>The value to put in the GroupValues collection of the GroupCountResult.</returns>
+        protected virtual object GetGroupByValue(ClassMapping mapping, IDataReader reader,
+            int number, AbstractGroupExpression expression)
+        {
+            // We aliased the group bys in order as "gb_0", "gb_1", etc.
+            string colName = "gb_" + number;
+            if (_connDesc.ColumnAliasWrappersInResults())
+            {
+                colName = _connDesc.ColumnAliasPrefix() + colName + _connDesc.ColumnAliasSuffix();
+            }
+            int colNum = reader.GetOrdinal(colName);
+            object value = reader.IsDBNull(colNum) ? null : reader.GetValue(colNum);
+            if (expression is MemberGroupExpression)
+            {
+                // For group bys, we leave nulls as nulls even if the type would
+                // normally be non-nullable (I.E. int, float, etc).
+                if (value != null)
+                {
+                    string memberName = ((MemberGroupExpression) expression).MemberName;
+                    Type desiredType = null;
+                    // If we actually have a member info, coerce the value to that type.
+                    if (mapping.AllObjMemberInfosByObjAttr.ContainsKey(memberName))
+                    {
+                        MemberInfo info = mapping.AllObjMemberInfosByObjAttr[memberName];
+                        // Don't call MemberType getter twice
+                        MemberTypes type = info.MemberType;
+                        if (type == MemberTypes.Field)
+                        {
+                            FieldInfo fInfo = ((FieldInfo) info);
+                            desiredType = fInfo.FieldType;
+                        }
+                        else if (type == MemberTypes.Property)
+                        {
+                            PropertyInfo pInfo = ((PropertyInfo) info);
+                            desiredType = pInfo.PropertyType;
+                        }
+                    }
+                    else if (mapping.DataColTypesByObjAttr.ContainsKey(memberName))
+                    {
+                        // We don't have a memberinfo, but we do have a type in the mapping,
+                        // so coerce to that type.
+                        desiredType = mapping.DataColTypesByObjAttr[memberName];
+                    }
+                    // If we have a type to coerce it to, coerce it, otherwise return as-is.
+                    if (desiredType != null)
+                    {
+                        value = CoerceType(desiredType, value);
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException(
+                    "Group expression '" + expression + "' is an unsupported type.",
+                    "expression");
+            }
+            return value;
         }
 
         /// <summary>
@@ -331,6 +392,77 @@ namespace Azavea.Open.DAO.SQL
             }
             SqlDaQuery sqlQuery = (SqlDaQuery) query;
             _sqlQueryCache.Return(sqlQuery);
+        }
+
+        /// <summary>
+        /// Adds the group by fields to the "column" list ("column"
+        /// since they may not all be columns) in the beginning of the
+        /// select (I.E. "SELECT COUNT(*), Field1, Field2, etc).
+        /// </summary>
+        /// <param name="query">Query to append to.</param>
+        /// <param name="groupExpressions">Group by expressions.</param>
+        /// <param name="mapping">Class mapping for the class we're dealing with.</param>
+        public virtual void GroupBysToStartOfQuery(SqlDaQuery query,
+            ICollection<AbstractGroupExpression> groupExpressions, ClassMapping mapping)
+        {
+            int exprNum = 0;
+            foreach (AbstractGroupExpression expression in groupExpressions)
+            {
+                query.Sql.Append(", ");
+                if (expression is MemberGroupExpression)
+                {
+                    query.Sql.Append(
+                        mapping.AllDataColsByObjAttrs[((MemberGroupExpression)expression).MemberName]);
+                    query.Sql.Append(_connDesc.NeedAsForColumnAliases() ? " AS " : " ")
+                        .Append(_connDesc.ColumnAliasPrefix())
+                        .Append("gb_").Append(exprNum).Append(_connDesc.ColumnAliasSuffix());
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        "Group expression '" + expression + "' is an unsupported type.",
+                        "groupExpressions");
+                }
+                exprNum++;
+            }
+        }
+        /// <summary>
+        /// Adds the group by fields to the end of the query, including
+        /// the keyword "GROUP BY" if necessary.
+        /// </summary>
+        /// <param name="query">Query to append to.</param>
+        /// <param name="groupExpressions">Group by expressions.</param>
+        /// <param name="mapping">Class mapping for the class we're dealing with.</param>
+        public virtual void GroupBysToEndOfQuery(SqlDaQuery query,
+            ICollection<AbstractGroupExpression> groupExpressions, ClassMapping mapping)
+        {
+            if (groupExpressions.Count > 0)
+            {
+                query.Sql.Append(" GROUP BY ");
+            }
+            bool first = true;
+            foreach (AbstractGroupExpression expression in groupExpressions)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    query.Sql.Append(", ");
+                }
+                if (expression is MemberGroupExpression)
+                {
+                    query.Sql.Append(
+                        mapping.AllDataColsByObjAttrs[((MemberGroupExpression) expression).MemberName]);
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        "Group expression '" + expression + "' is an unsupported type.",
+                        "groupExpressions");
+                }
+            }
         }
 
         /// <summary>
@@ -650,11 +782,15 @@ namespace Azavea.Open.DAO.SQL
                 switch (order.Direction)
                 {
                     case SortType.Asc:
-                        orderClauseToAddTo.Append(mapping.AllDataColsByObjAttrs[order.Property]);
+                        orderClauseToAddTo.Append(order is GroupCountSortOrder
+                            ? _connDesc.ColumnAliasPrefix() + "gb_count" + _connDesc.ColumnAliasSuffix()
+                            : mapping.AllDataColsByObjAttrs[order.Property]);
                         orderClauseToAddTo.Append(" ASC");
                         break;
                     case SortType.Desc:
-                        orderClauseToAddTo.Append(mapping.AllDataColsByObjAttrs[order.Property]);
+                        orderClauseToAddTo.Append(order is GroupCountSortOrder
+                            ? "gb_count"
+                            : mapping.AllDataColsByObjAttrs[order.Property]);
                         orderClauseToAddTo.Append(" DESC");
                         break;
                     case SortType.Computed:
@@ -668,7 +804,7 @@ namespace Azavea.Open.DAO.SQL
 
 
         /// <exclude/>
-        public override void ExecuteQuery(ClassMapping mapping, IDaQuery query,
+        public override void ExecuteQuery(ITransaction transaction, ClassMapping mapping, IDaQuery query,
                                           DataReaderDelegate invokeMe, Hashtable parameters)
         {
             if (query == null)
@@ -680,7 +816,7 @@ namespace Azavea.Open.DAO.SQL
                 throw new ArgumentException("Cannot execute a query not created by me.");
             }
             SqlDaQuery sqlQuery = (SqlDaQuery)query;
-            SqlConnectionUtilities.XSafeQuery(_connDesc, sqlQuery.Sql.ToString(), sqlQuery.Params, invokeMe, parameters);
+            SqlConnectionUtilities.XSafeQuery(_connDesc, (SqlTransaction)transaction, sqlQuery.Sql.ToString(), sqlQuery.Params, invokeMe, parameters);
         }
 
         /// <exclude/>
@@ -710,18 +846,18 @@ namespace Azavea.Open.DAO.SQL
         }
 
         /// <exclude/>
-        public override object GetLastAutoGeneratedId(ClassMapping mapping, string idCol)
+        public override object GetLastAutoGeneratedId(ITransaction transaction, ClassMapping mapping, string idCol)
         {
             string sql = _connDesc.MakeLastAutoGeneratedIdQuery(mapping.Table, idCol);
             Hashtable parameters = new Hashtable();
-            SqlConnectionUtilities.XSafeQuery(_connDesc, sql, null, ReadScalarValue, parameters);
+            SqlConnectionUtilities.XSafeQuery(_connDesc, (SqlTransaction)transaction, sql, null, ReadScalarValue, parameters);
             return parameters[0];
         }
 
         /// <exclude/>
-        public override int GetNextSequenceValue(string sequenceName)
+        public override int GetNextSequenceValue(ITransaction transaction, string sequenceName)
         {
-            return SqlConnectionUtilities.XSafeIntQuery(_connDesc,
+            return SqlConnectionUtilities.XSafeIntQuery(_connDesc, (SqlTransaction)transaction,
                                                    _connDesc.MakeSequenceValueQuery(sequenceName), null);
         }
         /// <exclude/>

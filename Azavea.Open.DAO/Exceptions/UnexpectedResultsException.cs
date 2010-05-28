@@ -36,7 +36,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// </summary>
         /// <param name="message">Start of the message, if you don't want to use the default.</param>
         /// <param name="desc">Connection descriptor we connected with.</param>
-        public UnexpectedResultsException(string message, ConnectionDescriptor desc)
+        public UnexpectedResultsException(string message, IConnectionDescriptor desc)
             : base(message, desc, null)
         {
         }
@@ -47,7 +47,7 @@ namespace Azavea.Open.DAO.Exceptions
         /// <param name="message">Start of the message, if you don't want to use the default.</param>
         /// <param name="desc">Connection descriptor we connected with.</param>
         /// <param name="e">Exception that was thrown by the delegate.</param>
-        public UnexpectedResultsException(string message, ConnectionDescriptor desc, Exception e)
+        public UnexpectedResultsException(string message, IConnectionDescriptor desc, Exception e)
             : base(message, desc, e)
         {
         }
