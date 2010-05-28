@@ -37,7 +37,7 @@ namespace Azavea.Open.DAO.SQL
     /// 
     /// This class, and any that extend it, should be thread safe.
     /// </summary>
-    public abstract class AbstractSqlConnectionDescriptor : ConnectionDescriptor, ITransactionalConnectionDescriptor
+    public abstract class AbstractSqlConnectionDescriptor : ConnectionDescriptor
     {
         /// <summary>
         /// Returns the appropriate data access layer for this connection.  The default
@@ -47,19 +47,6 @@ namespace Azavea.Open.DAO.SQL
         public override IDaLayer CreateDataAccessLayer()
         {
             return new SqlDaJoinableLayer(this, true);
-        }
-
-        /// <summary>
-        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
-        /// use for operations you wish to be part of the transaction.
-        /// 
-        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
-        /// </summary>
-        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
-        ///          happen as part of this transaction.</returns>
-        public ITransaction BeginTransaction()
-        {
-            return new SqlTransaction(this);
         }
 
         /// <summary>

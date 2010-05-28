@@ -37,7 +37,7 @@ namespace Azavea.Open.DAO.Firebird
     /// This class is a ConnectionDescriptor implementation for using FastDAO
     /// to communicate with a Firebird database (embedded or server).
     /// </summary>
-    public class FirebirdDescriptor : AbstractSqlConnectionDescriptor
+    public class FirebirdDescriptor : AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
 	{
         /// <summary>
         /// The server name, may be null if this is an embedded (I.E. file system) db.
@@ -159,6 +159,19 @@ namespace Azavea.Open.DAO.Firebird
         public override string ToCompleteString()
         {
             return _connectionStr;
+        }
+
+        /// <summary>
+        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
+        /// use for operations you wish to be part of the transaction.
+        /// 
+        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
+        /// </summary>
+        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
+        ///          happen as part of this transaction.</returns>
+        public ITransaction BeginTransaction()
+        {
+            return new SqlTransaction(this);
         }
 
         /// <exclude/>

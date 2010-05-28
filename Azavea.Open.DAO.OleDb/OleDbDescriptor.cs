@@ -30,6 +30,7 @@ using System.Data.OleDb;
 using System.Text;
 using Azavea.Open.Common;
 using Azavea.Open.DAO.Exceptions;
+using Azavea.Open.DAO.SQL;
 using Azavea.Open.DAO.Util;
 
 namespace Azavea.Open.DAO.OleDb
@@ -37,7 +38,7 @@ namespace Azavea.Open.DAO.OleDb
     /// <summary>
     /// This class represents the info necessary to connect to an OleDb data source.
     /// </summary>
-    public class OleDbDescriptor : SQL.AbstractSqlConnectionDescriptor
+    public class OleDbDescriptor : SQL.AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
     {
         /// <summary>
         /// These are the database types for which support has been implemented via OleDB.
@@ -174,6 +175,19 @@ namespace Azavea.Open.DAO.OleDb
             User = user;
             Password = password;
             ConnectTimeout = timeout;
+        }
+
+        /// <summary>
+        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
+        /// use for operations you wish to be part of the transaction.
+        /// 
+        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
+        /// </summary>
+        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
+        ///          happen as part of this transaction.</returns>
+        public ITransaction BeginTransaction()
+        {
+            return new SqlTransaction(this);
         }
 
         /// <summary>

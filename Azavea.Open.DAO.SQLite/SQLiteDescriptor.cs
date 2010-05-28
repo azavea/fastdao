@@ -37,7 +37,7 @@ namespace Azavea.Open.DAO.SQLite
     /// This class is a ConnectionDescriptor implementation for using FastDAO
     /// to communicate with a SQLite database.
     /// </summary>
-    public class SQLiteDescriptor : AbstractSqlConnectionDescriptor
+    public class SQLiteDescriptor : AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
 	{
         private readonly string _databasePath;
         private readonly string _connectionStr;
@@ -170,6 +170,19 @@ namespace Azavea.Open.DAO.SQLite
                 cmd.CommandText = sb.ToString();
                 DbCaches.StringBuilders.Return(sb);
             }
+        }
+
+        /// <summary>
+        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
+        /// use for operations you wish to be part of the transaction.
+        /// 
+        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
+        /// </summary>
+        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
+        ///          happen as part of this transaction.</returns>
+        public ITransaction BeginTransaction()
+        {
+            return new SqlTransaction(this);
         }
 
         /// <exclude/>
