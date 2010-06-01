@@ -213,7 +213,6 @@ namespace Azavea.Open.DAO.SQL
 
             parameters["groupBys"] = groupExpressions;
             parameters["mapping"] = mapping;
-Console.WriteLine(query.Sql);
             SqlConnectionUtilities.XSafeQuery(_connDesc, (SqlTransaction)transaction,
                 query.Sql.ToString(), query.Params, ReadGroupByCount, parameters);
             List<GroupCountResult> retVal = (List<GroupCountResult>) parameters["results"];
