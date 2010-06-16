@@ -67,7 +67,16 @@ namespace Azavea.Open.DAO.Criteria.Joins
         /// Whether this is an inner join, left join, etc.
         /// </summary>
         public JoinType TypeOfJoin;
-
+        /// <summary>
+        /// Used to limit the data returned, only data rows Start to Start + Limit will be returned.
+        /// A value of -1 means ignore this parameter.
+        /// </summary>
+        public int Start = -1;
+        /// <summary>
+        /// Used to limit the data returned, only data rows Start to Start + Limit will be returned.
+        /// A value of -1 means ignore this parameter.
+        /// </summary>
+        public int Limit = -1;
         /// <summary>
         /// Constructs a blank inner join criteria, which will return all records unless you customize it.
         /// All expressions added to it will be ANDed together.
@@ -151,6 +160,8 @@ namespace Azavea.Open.DAO.Criteria.Joins
             BoolType = BooleanOperator.And;
             Expressions.Clear();
             Orders.Clear();
+            Start = -1;
+            Limit = -1;
         }
 
         /// <summary>

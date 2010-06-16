@@ -158,7 +158,24 @@ namespace Azavea.Open.DAO.Util
             {
                 retVal.Sort(new PseudoJoinSorter<L, R>(crit.Orders, leftDao, rightDao));
             }
-            return retVal;
+            if (crit.Start == -1 && crit.Limit == -1)
+            {
+                return retVal;
+            }
+            int start = 0, count = retVal.Count;
+            if(crit.Limit != -1)
+            {
+                count = crit.Limit;
+            }
+            if(crit.Start != -1)
+            {
+                start = crit.Start;
+                if (count == retVal.Count)
+                {
+                    count -= start;
+                }
+            }
+            return retVal.GetRange(start, count);
         }
 
         /// <summary>
@@ -313,8 +330,25 @@ namespace Azavea.Open.DAO.Util
             if (crit.Orders.Count > 0)
             {
                 retVal.Sort(new PseudoJoinSorter<L, R>(crit.Orders, leftDao, rightDao));
+            } 
+            if (crit.Start == -1 && crit.Limit == -1)
+            {
+                return retVal;
             }
-            return retVal;
+            int start = 0, count = retVal.Count;
+            if (crit.Limit != -1)
+            {
+                count = crit.Limit;
+            }
+            if (crit.Start != -1)
+            {
+                start = crit.Start;
+                if (count == retVal.Count)
+                {
+                    count -= start;
+                }
+            }
+            return retVal.GetRange(start, count);
         }
     }
 }

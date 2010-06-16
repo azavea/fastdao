@@ -95,10 +95,13 @@ namespace Azavea.Open.DAO.Tests
                                                                                           ": Right object " + count + " had the wrong value.");
                 }
             }
-            // Now we know the get works, test get count.
-            Assert.AreEqual(expectedLeft.Length, leftDao.GetCount(crit, rightDao));
+            // Now we know the get works, test get count if not testing start/limit
+            if (crit.Start == -1 && crit.Limit == -1)
+            {
+                Assert.AreEqual(expectedLeft.Length, leftDao.GetCount(crit, rightDao), "GetCount was incorrect");
+            }
         }
-
+        
         /// <exclude/>
         [Test]
         public void TestInnerJoinEquals()
@@ -113,6 +116,46 @@ namespace Azavea.Open.DAO.Tests
                               new string[] { "one", "two", "three" },
                               new string[] { "one", "two", "three" },
                               "Inner join, 2 = 1");
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestJoinStart()
+        {
+            DaoJoinCriteria crit = new DaoJoinCriteria(new EqualJoinExpression("JoinField", "JoinField"));
+            crit.Orders.Add(new JoinSortOrder("ID", true));
+            crit.Start = 1;
+            AssertJoinResults(_dao1, _dao2, crit,
+                              new string[] { "two", "three" },
+                              new string[] { "two", "three" },
+                              "Join start only");
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestJoinLimit()
+        {
+            DaoJoinCriteria crit = new DaoJoinCriteria(new EqualJoinExpression("JoinField", "JoinField"));
+            crit.Orders.Add(new JoinSortOrder("ID", true));
+            crit.Limit = 2;
+            AssertJoinResults(_dao1, _dao2, crit,
+                              new string[] { "one", "two" },
+                              new string[] { "one", "two" },
+                              "Join limit only");
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestJoinStartLimit()
+        {
+            DaoJoinCriteria crit = new DaoJoinCriteria(new EqualJoinExpression("JoinField", "JoinField"));
+            crit.Orders.Add(new JoinSortOrder("ID", true));
+            crit.Start = 1;
+            crit.Limit = 1;
+            AssertJoinResults(_dao1, _dao2, crit,
+                              new string[] { "two" },
+                              new string[] { "two" },
+                              "Join start and limit");
         }
 
         /// <exclude/>

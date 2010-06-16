@@ -614,6 +614,17 @@ namespace Azavea.Open.DAO
                 ((IDaJoinableLayer)_dataAccessLayer).CanJoin<R>(crit, rightDao.ConnDesc, rightDao.ClassMap))
             {
                 Hashtable parameters = DbCaches.Hashtables.Get();
+                if (crit != null)
+                {
+                    if (crit.Start > 0)
+                    {
+                        parameters.Add("start", crit.Start);
+                    }
+                    if (crit.Limit > 0)
+                    {
+                        parameters.Add("limit", crit.Limit);
+                    }
+                }
                 parameters["rightDao"] = rightDao;
                 IDaJoinQuery query = ((IDaJoinableLayer)_dataAccessLayer).CreateJoinQuery(crit,
                         _classMap, rightDao.ClassMap);
