@@ -38,7 +38,7 @@ namespace Azavea.Open.DAO.OleDb
     /// <summary>
     /// This class represents the info necessary to connect to an OleDb data source.
     /// </summary>
-    public class OleDbDescriptor : SQL.AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
+    public class OleDbDescriptor : AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
     {
         /// <summary>
         /// These are the database types for which support has been implemented via OleDB.
@@ -384,10 +384,10 @@ namespace Azavea.Open.DAO.OleDb
         }
 
         /// <exclude/>
-        public override SQL.SqlClauseWithValue MakeModulusClause(string fieldName)
+        public override SqlClauseWithValue MakeModulusClause(string fieldName)
         {
             StringBuilder sb = DbCaches.StringBuilders.Get();
-            SQL.SqlClauseWithValue retVal = DbCaches.Clauses.Get();
+            SqlClauseWithValue retVal = DbCaches.Clauses.Get();
             switch (Type)
             {
                 case DatabaseType.ORACLE:
@@ -439,10 +439,10 @@ namespace Azavea.Open.DAO.OleDb
         }
 
         /// <exclude/>
-        public override SQL.SqlClauseWithValue MakeBitwiseAndClause(string columnName)
+        public override SqlClauseWithValue MakeBitwiseAndClause(string columnName)
         {
             StringBuilder sb = DbCaches.StringBuilders.Get();
-            SQL.SqlClauseWithValue retVal = DbCaches.Clauses.Get();
+            SqlClauseWithValue retVal = DbCaches.Clauses.Get();
             switch (Type)
             {
                 case DatabaseType.SQLSERVER:
