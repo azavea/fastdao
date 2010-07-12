@@ -69,7 +69,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Deletes a data object record using the mapping and criteria for what's deleted.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table from which to delete.</param>
         /// <param name="crit">Criteria for deletion.  NOTE: Only the expressions are observed,
         ///                    other things (like "order" or start / limit) are ignored.
@@ -91,7 +91,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Inserts a data object record using the "table" and a list of column/value pairs.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="propValues">A dictionary of "column"/value pairs for the object to insert.</param>
         /// <returns>The number of records affected.</returns>
@@ -100,7 +100,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Inserts a list of data object records of the same type.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="propValueDictionaries">A list of dictionaries of column/value pairs.  
         ///                                     Each item in the list should represent the dictionary of column/value pairs for 
@@ -112,7 +112,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Updates a data object record using the "table" and a list of column/value pairs.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="crit">All records matching this criteria will be updated per the dictionary of
         ///                    values.</param>
@@ -123,7 +123,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Updates a list of data object records of the same type.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table or other data container we're dealing with.</param>
         /// <param name="criteriaList">A list of DaoCriteria.
         ///                            Each item in the list should represent the criteria for 
@@ -150,7 +150,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Executes a query and invokes a method with a DataReader of results.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">Class mapping for the table we're querying against.  Optional,
         ///                       but not all columns may be properly typed if it is null.</param>
         /// <param name="query">The query to execute, should have come from CreateQuery.</param>
@@ -169,7 +169,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Gets a count of records for the given criteria.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table for which to build the query string.</param>
         /// <param name="crit">The criteria to use for "where" comparisons.</param>
         /// <returns>The number of results found that matched the criteria.</returns>
@@ -180,7 +180,7 @@ namespace Azavea.Open.DAO
         /// aggregated by the given grouping expressions.  This matches "GROUP BY" behavior
         /// in SQL.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The mapping of the table for which to build the query string.</param>
         /// <param name="crit">The criteria to use for "where" comparisons.</param>
         /// <param name="groupExpressions">The fields/expressions to aggregate on when counting.</param>
@@ -205,7 +205,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Finds the last generated id number for a column.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="mapping">The class mapping for the table being queried.</param>
         /// <param name="idCol">The ID column for which to find the last-generated ID.</param>
         object GetLastAutoGeneratedId(ITransaction transaction, ClassMapping mapping, string idCol);
@@ -213,7 +213,7 @@ namespace Azavea.Open.DAO
         /// <summary>
         /// Gets the next id number from a sequence in the data source.
         /// </summary>
-        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="transaction">The transaction to do this as part of. May be null.</param>
         /// <param name="sequenceName">The name of the sequence.</param>
         /// <returns>The next number from the sequence.</returns>
         int GetNextSequenceValue(ITransaction transaction, string sequenceName);
