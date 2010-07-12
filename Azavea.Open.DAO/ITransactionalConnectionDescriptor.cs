@@ -38,12 +38,12 @@ namespace Azavea.Open.DAO
     public interface ITransactionalConnectionDescriptor : IConnectionDescriptor
     {
         /// <summary>
-        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
+        /// Begins the transaction.  Returns a transaction object that you should
         /// use for operations you wish to be part of the transaction.
         /// 
         /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
         /// </summary>
-        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
+        /// <returns>The Transaction object to pass to calls that you wish to have
         ///          happen as part of this transaction.</returns>
         ITransaction BeginTransaction();
     }
