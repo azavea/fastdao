@@ -39,7 +39,7 @@ namespace Azavea.Open.DAO
 {
     /// <summary>
     /// This class is built to be a "fast and easy" way of reading/writing objects to/from a
-    /// data source.  It meant to have high performance on throughput of large numbers of objects.
+    /// data source.  It is meant to have high performance on throughput of large numbers of objects.
     /// It does not support every possible sophistication that an ORM system can have.
     /// </summary>
     public class FastDAO<T> : IFastDaoInserter<T>, IFastDaoUpdater<T>, IFastDaoDeleter<T>, IFastDaoReader<T> where T : class, new()
@@ -142,7 +142,9 @@ namespace Azavea.Open.DAO
         public FastDAO(Config config, string sectionName,
             ConnectionInfoDecryptionDelegate decryptionDelegate) :
             this(ConnectionDescriptor.LoadFromConfig(config, sectionName, decryptionDelegate),
-                 config.GetParameterWithSubstitution(sectionName, "MAPPING", false))
+                config.ParameterExists(sectionName, "MAPPING")
+                    ? ParseHibernateConfig(typeof(T), config.GetParameterWithSubstitution(sectionName, "MAPPING", false))
+                    : ParseHibernateConfig(typeof(T), config.GetConfigXml(sectionName), config.ConfigFile))
         {
         }
 
@@ -193,11 +195,52 @@ namespace Azavea.Open.DAO
         ///          null.</returns>
         private static ClassMapping ParseHibernateConfig(Type desiredType, string fileName)
         {
-            ClassMapping retVal = null;
             XmlDocument doc = new XmlDocument();
             doc.Load(fileName);
-            XmlNodeList list = doc.GetElementsByTagName("class");
-            foreach (XmlNode node in list)
+            return ParseHibernateConfig(desiredType, doc, fileName);
+        }
+        /// <summary>
+        /// Loads ClassMappings from NHibernate config xml.  This method is somewhat
+        /// fragile (doesn't catch exceptions), since if we can't parse the NHibernate
+        /// config, we can't do much.  However it will ignore problems with class mappings
+        /// other than for the desired type.
+        /// 
+        /// Static so we can call it from the constructor.
+        /// </summary>
+        /// <param name="desiredType">The type we're loading a mapping for.</param>
+        /// <param name="xmlStr">The XML text that contains the NHibernate-style XML configuration.</param>
+        /// <param name="xmlSource">Where the XML came from, I.E. a filename or other explaination
+        ///                         you would like to see in an error message.  Used only for exception
+        ///                         message, may be null.</param>
+        /// <returns>The class mapping for the desired type.  If unable to find it, an
+        ///          exception is thrown, so you may safely assume this will never return
+        ///          null.</returns>
+        private static ClassMapping ParseHibernateConfig(Type desiredType, string xmlStr, string xmlSource)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xmlStr);
+            return ParseHibernateConfig(desiredType, doc, xmlSource);
+        }
+        /// <summary>
+        /// Loads ClassMappings from NHibernate config xml.  This method is somewhat
+        /// fragile (doesn't catch exceptions), since if we can't parse the NHibernate
+        /// config, we can't do much.  However it will ignore problems with class mappings
+        /// other than for the desired type.
+        /// 
+        /// Static so we can call it from the constructor.
+        /// </summary>
+        /// <param name="desiredType">The type we're loading a mapping for.</param>
+        /// <param name="xml">The XML node that contains the NHibernate-style XML configuration.</param>
+        /// <param name="xmlSource">Where the XML came from, I.E. a filename or other explaination
+        ///                         you would like to see in an error message.  Used only for exception
+        ///                         message, may be null.</param>
+        /// <returns>The class mapping for the desired type.  If unable to find it, an
+        ///          exception is thrown, so you may safely assume this will never return
+        ///          null.</returns>
+        private static ClassMapping ParseHibernateConfig(Type desiredType, XmlNode xml, string xmlSource)
+        {
+            ClassMapping retVal = null;
+            foreach (XmlNode node in GetClassNodes(xml))
             {
                 string name = node.Attributes["name"].Value;
                 if (desiredType.Equals(Type.GetType(name)))
@@ -209,9 +252,38 @@ namespace Azavea.Open.DAO
             if (retVal == null)
             {
                 throw new BadDaoConfigurationException("Type " + desiredType.FullName +
-                                                       " does not appear to be mapped in file " + fileName);
+                                                       " does not appear to be mapped in " + xmlSource);
             }
             return retVal;
+        }
+
+        /// <summary>
+        /// After some experimentation, it was determined that using a manual recursive
+        /// function to find all the 'class' nodes is fastest, GetElementsByTagName is
+        /// almost 3x slower (and only works on XmlDocuments not XmlNodes anyway) and 
+        /// SelectNodes is 2.5x slower than GetElementsByTagName.
+        /// </summary>
+        /// <param name="node">Top node of the tree where we're looking for class nodes.</param>
+        /// <returns>A list of all the class nodes in this xml tree.</returns>
+        private static IList<XmlNode> GetClassNodes(XmlNode node)
+        {
+            List<XmlNode> retVal = new List<XmlNode>();
+            WalkTreeForClassNodes(node, retVal);
+            return retVal;
+        }
+        private static void WalkTreeForClassNodes(XmlNode node, ICollection<XmlNode> putEmHere)
+        {
+            if (node.Name == "class")
+            {
+                putEmHere.Add(node);
+            }
+            else
+            {
+                foreach (XmlNode child in node)
+                {
+                    WalkTreeForClassNodes(child, putEmHere);
+                }
+            }
         }
         #endregion
 

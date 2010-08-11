@@ -21,6 +21,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using Azavea.Open.Common;
 using Azavea.Open.DAO.Memory;
 using NUnit.Framework;
 
@@ -43,6 +45,27 @@ namespace Azavea.Open.DAO.Tests
         {
             AssertCompositeMapping(new FastDAO<NHibernateCompositeKeyClass>(
                 new MemoryDescriptor("Test1"), "..\\..\\Tests\\Mapping.xml").ClassMap);
+        }
+        /// <exclude/>
+        [Test]
+        public void TestInlineMapping()
+        {
+            // These should work fine since they are mapped inline.
+            new FastDAO<NameClass>(new Config("..\\..\\Tests\\MemoryDao.config", "MemoryDaoConfig"), "DAOInlineMapping");
+            new FastDAO<EnumClass>(new Config("..\\..\\Tests\\MemoryDao.config", "MemoryDaoConfig"), "DAOInlineMapping");
+            Exception ex = null;
+            try
+            {
+                // This should fail since it isn't in the inline mapping.
+                new FastDAO<BoolClass>(new Config("..\\..\\Tests\\MemoryDao.config", "MemoryDaoConfig"), "DAOInlineMapping");
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+            Assert.IsNotNull(ex, "Failed to throw an exception on class that is not in the mapping.");
+            Assert.IsTrue(ex.Message.Contains("BoolClass"),
+                "Doesn't mention the name of the class that isn't mapped in the exception message.");
         }
 
         private static void AssertCompositeMapping(ClassMapping mapping)
