@@ -222,6 +222,7 @@ namespace Azavea.Open.DAO.SQLite
             return true;
         }
 
+        /// <exclude/>
         public override bool NeedAsForColumnAliases()
         {
             return false;

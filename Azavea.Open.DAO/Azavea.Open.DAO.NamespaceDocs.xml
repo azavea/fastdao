@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<doc>
+	<assembly>
+		<name>Azavea.Open.DAO</name>
+	</assembly>
+	<members>
+		<member name="N:Azavea.Open.DAO">
+			<summary>
+				Maps .NET objects to data sources (databases, files, REST APIs, etc). 
+				Similar to NHibernate, but with a different philosophy. Designed to be 
+				simple enough for anyone to use and fast enough for extremely high 
+				throughput on very large data sets. 
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Criteria">
+			<summary>
+				All of the expressions that go into specifying what data you want back
+				and in what order.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Criteria.Grouping">
+			<summary>
+				If you wish to aggregate your data ("GROUP BY" in SQL), you'll use these
+				classes to specify that.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Criteria.Joins">
+			<summary>
+				To join two data sources (can be tables in an RDBMS, can be totally
+				unrelated sources such as a database table and a CSV), use these classes
+				to specify how.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Criteria.Spatial">
+			<summary>
+				Spatial expressions for defining queries against spatial data sources
+				live here.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Exceptions">
+			<summary>
+				Here you'll find the various exceptions that FastDAO can throw.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Memory">
+			<summary>
+				This is a memory-based data source for FastDAO.  It supports most of
+				the features that any real data source supports, but stores the data
+				in memory.  It is not designed to be super-fast, it is intended primarily
+				for allowing unit testing of FastDAO without requiring any "real" data
+				source to be present.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.SQL">
+			<summary>
+				There are a number of abstract classes and helpers that live here, to
+				allow common code to be shared between all the SQL-based data sources.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Unqueryable">
+			<summary>
+				Some data sources (such as CSV files) are not naturally queryable, so
+				all the data must be read every time we query, and only matching records
+				kept.  This assembly contains helper classes for doing that.
+			</summary>
+		</member>
+		<member name="N:Azavea.Open.DAO.Util">
+			<summary>
+				Utility classes used by FastDAO for caching, things that apply to all
+				data sources, and other misc utility classes live here.
+			</summary>
+		</member>
+	</members>
+</doc>

@@ -609,6 +609,17 @@ namespace Azavea.Open.DAO.CSV
             return retVal;
         }
 
+        /// <summary>
+        /// Gets a count of records for the given criteria,
+        /// aggregated by the given grouping expressions.  This matches "GROUP BY" behavior
+        /// in SQL.
+        /// </summary>
+        /// <param name="transaction">The transaction to do this as part of.</param>
+        /// <param name="mapping">The mapping of the table for which to build the query string.</param>
+        /// <param name="crit">The criteria to use for "where" comparisons.</param>
+        /// <param name="groupExpressions">The fields/expressions to aggregate on when counting.</param>
+        /// <returns>The number of objects that match the criteria, plus the values of those objects
+        ///          for the fields that were aggregated on.</returns>
         public override List<GroupCountResult> GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit, ICollection<AbstractGroupExpression> groupExpressions)
         {
             throw new NotImplementedException();

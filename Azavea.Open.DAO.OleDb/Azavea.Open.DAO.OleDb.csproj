@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Azavea.Open.DAO.OleDb.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
@@ -67,6 +68,13 @@
     <None Include="Tests\AccessDao.config" />
     <None Include="Tests\OracleDao.config" />
     <None Include="Tests\SqlServerDao.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Azavea.Open.DAO.OleDb.LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Azavea.Open.DAO.OleDb.NamespaceDocs.xml">
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

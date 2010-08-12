@@ -526,6 +526,7 @@ namespace Azavea.Open.DAO.OleDb
             }
         }
 
+        /// <exclude/>
         public override bool NeedAsForColumnAliases()
         {
             switch (Type)

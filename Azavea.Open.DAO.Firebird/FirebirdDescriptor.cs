@@ -273,6 +273,7 @@ namespace Azavea.Open.DAO.Firebird
             return true;
         }
 
+        /// <exclude/>
         public override bool NeedAsForColumnAliases()
         {
             return false;

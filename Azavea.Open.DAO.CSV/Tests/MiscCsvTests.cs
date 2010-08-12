@@ -184,10 +184,15 @@ namespace Azavea.Open.DAO.CSV.Tests
     /// <exclude/>
     public class CsvTestObj
     {
+        /// <exclude/>
         public int One;
+        /// <exclude/>
         public double Two;
+        /// <exclude/>
         public string Three;
+        /// <exclude/>
         public DateTime Four;
+        /// <exclude/>
         public object Five;
     }
 }
