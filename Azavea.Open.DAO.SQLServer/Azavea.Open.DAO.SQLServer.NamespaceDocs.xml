@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<doc>
+	<assembly>
+		<name>Azavea.Open.DAO.SQLServer</name>
+	</assembly>
+	<members>
+		<member name="N:Azavea.Open.DAO.SQLServer">
+			<summary>
+				An assembly for accessing SQL Server databases via FastDAO.  
+				This assembly uses the .NET SQL Server ADO.Net provider rather than
+        OleDb.
+			</summary>
+		</member>
+	</members>
+</doc>

@@ -28,6 +28,8 @@ echo         ^<assembly assemblyPath=".\Azavea.Open.DAO.PostgreSQL\bin\Release\A
 echo         ^<assembly assemblyPath="" xmlCommentsPath=".\Azavea.Open.DAO.PostgreSQL\Azavea.Open.DAO.PostgreSQL.NamespaceDocs.xml" commentsOnly="True" /^> >> apidocs.shfb
 echo         ^<assembly assemblyPath=".\Azavea.Open.DAO.SQLite\bin\Release\Azavea.Open.DAO.SQLite.dll" xmlCommentsPath=".\Azavea.Open.DAO.SQLite\bin\Release\Azavea.Open.DAO.SQLite.XML" commentsOnly="False" /^> >> apidocs.shfb
 echo         ^<assembly assemblyPath="" xmlCommentsPath=".\Azavea.Open.DAO.SQLite\Azavea.Open.DAO.SQLite.NamespaceDocs.xml" commentsOnly="True" /^> >> apidocs.shfb
+echo         ^<assembly assemblyPath=".\Azavea.Open.DAO.SQLServer\bin\Release\Azavea.Open.DAO.SQLServer.dll" xmlCommentsPath=".\Azavea.Open.DAO.SQLServer\bin\Release\Azavea.Open.DAO.SQLServer.XML" commentsOnly="False" /^> >> apidocs.shfb
+echo         ^<assembly assemblyPath="" xmlCommentsPath=".\Azavea.Open.DAO.SQLServer\Azavea.Open.DAO.SQLServer.NamespaceDocs.xml" commentsOnly="True" /^> >> apidocs.shfb
 echo     ^</assemblies^> >> apidocs.shfb
 echo     ^<dependencies^> >> apidocs.shfb
 echo         ^<dependencyItem depPath=".\Azavea.Open.Common\lib\log4net\log4net.dll" /^> >> apidocs.shfb

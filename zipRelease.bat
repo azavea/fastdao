@@ -36,6 +36,8 @@ mkdir releasebin\PostgreSQL
 FOR /R "Azavea.Open.DAO.PostgreSQL\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\PostgreSQL"
 mkdir releasebin\SQLite
 FOR /R "Azavea.Open.DAO.SQLite\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\SQLite"
+mkdir releasebin\SQLServer
+FOR /R "Azavea.Open.DAO.SQLServer\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\SQLServer"
 
 
 set filename=fastdao_!version!.zip

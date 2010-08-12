@@ -25,79 +25,122 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Text;
-using System.Data.SQLite;
 using Azavea.Open.Common;
 using Azavea.Open.DAO.SQL;
 using Azavea.Open.DAO.Util;
+using SqlTransaction=Azavea.Open.DAO.SQL.SqlTransaction;
 
-namespace Azavea.Open.DAO.SQLite
+namespace Azavea.Open.DAO.SQLServer
 {
     /// <summary>
-    /// This class is a ConnectionDescriptor implementation for using FastDAO
-    /// to communicate with a SQLite database.
+    /// This class represents the info necessary to connect to a SQL Server database.
+    /// TODO: Add support for SQL Server Spatial.
     /// </summary>
-    public class SQLiteDescriptor : AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
-	{
-        private readonly string _databasePath;
-        private readonly string _connectionStr;
-        private readonly string _cleanConnStr;
-        private readonly bool _usePooling = true;
+    public class SQLServerDescriptor : AbstractSqlConnectionDescriptor, ITransactionalConnectionDescriptor
+    {
+        /// <exclude/>
+        protected readonly string _connectionStr;
+        /// <exclude/>
+        protected readonly string _cleanConnStr;
 
         /// <summary>
-        /// Constructor for talking to a SQLite database.
+        /// The server name. May not be null.
         /// </summary>
-        /// <param name="databasePath">Path to the db file.</param>
-        public SQLiteDescriptor(string databasePath)
-        {
-            if (!StringHelper.IsNonBlank(databasePath))
-            {
-                throw new ArgumentNullException("databasePath", "Database file path cannot be null/blank.");
-            }
-            SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
-            builder.DataSource = _databasePath = databasePath;
-            
-            // we want to disable pooling so we don't wind up locking
-            // the file indefinitely.
-            builder.Pooling = false;
-            _usePooling = false;
-            // There is no password, so the strings are the same.
-            _cleanConnStr = builder.ToString();
-            _connectionStr = builder.ToString();
-        }
-       
+        public readonly string Server;
         /// <summary>
-        /// This constructor reads all the appropriate values from our standard config file
-        /// in the normal format.
+        /// The database name.  May not be null.
+        /// </summary>
+        public readonly string Database;
+        /// <summary>
+        /// The user name, if necessary to log into the database.  May be null.
+        /// </summary>
+        public readonly string User;
+        /// <summary>
+        /// The password for the User.  May be null.
+        /// </summary>
+        public readonly string Password;
+
+        /// <summary>
+        /// This constructor reads all the appropriate values from a config file.
         /// </summary>
         /// <param name="config">Config to get params from.</param>
         /// <param name="component">Section of the config XML to look in for db params.</param>
         /// <param name="decryptionDelegate">Delegate to call to decrypt password fields.
         ///                                  May be null if passwords are in plain text.</param>
-        public SQLiteDescriptor(Config config, string component,
+        public SQLServerDescriptor(Config config, string component,
             ConnectionInfoDecryptionDelegate decryptionDelegate)
-        {
-            SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
-            
-            builder.Pooling = false;
-            _usePooling = false;
-            
-            builder.DataSource = _databasePath = config.GetParameterWithSubstitution(component, "Database", true);
+            : this(config.GetParameter(component, "Server", null),
+                   config.GetParameter(component, "Database", null),
+                   config.GetParameter(component, "User", null),
+                   GetDecryptedConfigParameter(config, component, "Password", decryptionDelegate)) {}
 
-            // We don't currently support passwords, so the clean conn str is the same
-            // as the real one.
-            _cleanConnStr = builder.ToString();
-            _connectionStr = builder.ToString();
+        /// <summary>
+        /// Constructor that lets you pass everything as parameters rather than requiring a config.
+        /// </summary>
+        /// <param name="server">Server name.  May not be null.</param>
+        /// <param name="database">Database name on that server.  May not be null.</param>
+        /// <param name="user">Database user name, may be null.</param>
+        /// <param name="password">Password for the user. May be null.</param>
+        public SQLServerDescriptor(string server, string database, string user, string password)
+        {
+            _connectionStr = MakeConnectionString(server, database, user, password);
+            _cleanConnStr = MakeConnectionString(server, database, user, null);
+            Server = server;
+            Database = database;
+            User = user;
+            Password = password;
         }
 
         /// <summary>
-        /// The fully qualified path to the database file.
+        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
+        /// use for operations you wish to be part of the transaction.
+        /// 
+        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
         /// </summary>
-        public string DatabasePath
-		{
-			get{return _databasePath;}
-		}
+        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
+        ///          happen as part of this transaction.</returns>
+        public ITransaction BeginTransaction()
+        {
+            return new SqlTransaction(this);
+        }
 
+        /// <summary>
+        /// Assembles a connection string that can be used to get a database connection.
+        /// All the parameters are optional for the purposes of this method, although obviously
+        /// it would be possible to create a useless connection string if you leave out important
+        /// parameters.
+        /// </summary>
+        /// <param name="server">Server name that is hosting the database</param>
+        /// <param name="database">Database name on the server.</param>
+        /// <param name="user">User name to use when accessing the db.</param>
+        /// <param name="password">Password for above user.</param>
+        /// <returns>A connection string that can be used to create SqlConnections.</returns>
+        public static string MakeConnectionString(string server,
+                                                  string database, string user, string password)
+        {
+            string connStr = "";
+
+            // Assemble the string.  Only include parameters that have values.
+            if (StringHelper.IsNonBlank(server))
+            {
+                connStr += "server=" + server + ";";
+            }
+            if (StringHelper.IsNonBlank(user))
+            {
+                connStr += "uid=" + user + ";";
+            }
+            if (StringHelper.IsNonBlank(password))
+            {
+                connStr += "pwd=" + password + ";";
+            }
+            if (StringHelper.IsNonBlank(database))
+            {
+                connStr += "database=" + database + ";";
+            }
+            return connStr;
+        }
         /// <exclude/>
         public override string ToCleanString()
         {
@@ -113,14 +156,14 @@ namespace Azavea.Open.DAO.SQLite
         /// <exclude/>
         public override DbConnection CreateNewConnection()
         {
-            return new SQLiteConnection(_connectionStr);
+            return new SqlConnection(_connectionStr);
         }
 
         /// <exclude/>
         public override void SetParametersOnCommand(IDbCommand cmd, IEnumerable parameters)
         {
             // TODO TODO TODO TODO
-            // This is almost a complete cut-n-paste from the SQLServerDescriptor.SetParametersOnCommand.
+            // This is almost a complete cut-n-paste from the SQLiteDescriptor.SetParametersOnCommand.
             // The only difference is the class of the IDbParameter object instantiated.
             // We need to refactor this into some sort of helper method, or even better,
             // make it so we can construct the SQL with @params in the first place rather
@@ -145,7 +188,7 @@ namespace Azavea.Open.DAO.SQLite
                     // Get the value to insert.
                     object param = enumer.Current ?? DBNull.Value;
                     // Construct and add the parameter object.
-                    cmd.Parameters.Add(new SQLiteParameter(paramName, param));
+                    cmd.Parameters.Add(new SqlParameter(paramName, param));
 
                     // Move the enumerator to the next item, if there should be another one.
                     if ((x + 1) < (sqlPieces.Length - 1))
@@ -178,37 +221,25 @@ namespace Azavea.Open.DAO.SQLite
             }
         }
 
-        /// <summary>
-        /// Begins the transaction.  Returns a NEW ConnectionDescriptor that you should
-        /// use for operations you wish to be part of the transaction.
-        /// 
-        /// NOTE: You MUST call Commit or Rollback on the returned ITransaction when you are done.
-        /// </summary>
-        /// <returns>The ConnectionDescriptor object to pass to calls that you wish to have
-        ///          happen as part of this transaction.</returns>
-        public ITransaction BeginTransaction()
-        {
-            return new SqlTransaction(this);
-        }
-
         /// <exclude/>
         public override DbDataAdapter CreateNewAdapter(IDbCommand cmd)
         {
-            return new SQLiteDataAdapter((SQLiteCommand) cmd);
-        }
-        /// <exclude/>
-        public override bool UsePooling()
-        {
-            return _usePooling;
+            return new SqlDataAdapter((SqlCommand)cmd);
         }
 
         /// <exclude/>
-        public override SqlClauseWithValue MakeModulusClause(string columnName)
+        public override bool UsePooling()
+        {
+            return true;
+        }
+
+        /// <exclude/>
+        public override SqlClauseWithValue MakeModulusClause(string fieldName)
         {
             StringBuilder sb = DbCaches.StringBuilders.Get();
             SqlClauseWithValue retVal = DbCaches.Clauses.Get();
             sb.Append("(");
-            sb.Append(columnName);
+            sb.Append(fieldName);
             sb.Append(" % ");
             retVal.PartBeforeValue = sb.ToString();
             retVal.PartAfterValue = ")";
@@ -217,9 +248,28 @@ namespace Azavea.Open.DAO.SQLite
         }
 
         /// <exclude/>
-        public override string MakeSequenceValueQuery(string sequenceName)
+        public override SqlClauseWithValue MakeBitwiseAndClause(string columnName)
         {
-            return "SELECT seq from sqlite_sequence where name == \"" + sequenceName + "\"";
+            StringBuilder sb = DbCaches.StringBuilders.Get();
+            SqlClauseWithValue retVal = DbCaches.Clauses.Get();
+            sb.Append(" (");
+            sb.Append(columnName);
+            sb.Append(" & ");
+            retVal.PartBeforeValue = sb.ToString();
+            retVal.PartAfterValue = ")";
+            DbCaches.StringBuilders.Return(sb);
+            return retVal;
+        }
+
+        /// <exclude/>
+        public override string TableAliasPrefix()
+        {
+            return "";
+        }
+        /// <exclude/>
+        public override string TableAliasSuffix()
+        {
+            return "";
         }
 
         /// <exclude/>
@@ -237,31 +287,13 @@ namespace Azavea.Open.DAO.SQLite
         /// <exclude/>
         public override string ColumnAliasPrefix()
         {
-            return "\"";
+            return "[";
         }
 
         /// <exclude/>
         public override string ColumnAliasSuffix()
         {
-            return "\"";
-        }
-
-        /// <exclude/>
-        public override string TableAliasPrefix()
-        {
-            return "";
-        }
-
-        /// <exclude/>
-        public override string TableAliasSuffix()
-        {
-            return "";
-        }
-
-        /// <exclude/>
-        public override bool SupportsTruncate()
-        {
-            return false;
+            return "]";
         }
     }
 }
