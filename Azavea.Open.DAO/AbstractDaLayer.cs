@@ -24,7 +24,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
+using Azavea.Open.Common;
 using Azavea.Open.DAO.Criteria;
 using Azavea.Open.DAO.Criteria.Grouping;
 using Azavea.Open.DAO.Exceptions;
@@ -324,7 +326,7 @@ namespace Azavea.Open.DAO
                     }
                     return Convert.ToDateTime(input);
                 }
-                if (desiredType.Equals(typeof (int?)))
+                if (desiredType.Equals(typeof(int?)))
                 {
                     if (input == null)
                     {
@@ -332,7 +334,15 @@ namespace Azavea.Open.DAO
                     }
                     return Convert.ToInt32(input);
                 }
-                if (desiredType.Equals(typeof (double?)))
+                if (desiredType.Equals(typeof(long?)))
+                {
+                    if (input == null)
+                    {
+                        return null;
+                    }
+                    return Convert.ToInt64(input);
+                }
+                if (desiredType.Equals(typeof(double?)))
                 {
                     if (input == null)
                     {
@@ -363,6 +373,31 @@ namespace Azavea.Open.DAO
                     // this to be the method that throws the type cast exception.
                     byte[] retVal = (byte[]) input;
                     return retVal;
+                }
+                // Nullables are generics, so nullable enums are more work to check for.
+                if (desiredType.IsGenericType &&
+                    desiredType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                {
+                    // Technically this first check will work for any nullable type, not just enums.
+                    if (input == null)
+                    {
+                        return null;
+                    }
+                    // Note that we're only handling nullables, which have 1 generic param
+                    // which is why the [0] is correct.
+                    Type genericType = desiredType.GetGenericArguments()[0];
+                    if (genericType.IsEnum)
+                    {
+                        return (input is int)
+                            // Unlike normal enums, integers cannot simply be set on a nullable enum.
+                            // So we have to call ToObject to convert it to an enum value first.
+                            ? Enum.ToObject(genericType, input)
+                            // Since it is a nullable enum, we're allowing blank or all-whitespace
+                            // strings to count as nulls.
+                            : (StringHelper.IsNonBlank(input.ToString())
+                                ? Enum.Parse(genericType, input.ToString())
+                                : null);
+                    }
                 }
 
                 // For misc object types, we'll just check if it is already the correct type.
