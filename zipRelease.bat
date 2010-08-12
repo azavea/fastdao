@@ -9,6 +9,10 @@ if "%1" equ "" (
 ) else (
     set version=%1
 )
+rem Optionally %2 is the trunk directory.
+if "%2" neq "" (
+    pushd "%2"
+)
 
 echo Zipping bin/Release dir.
 set zipexe=\\lr02\7z\7z.exe
@@ -55,3 +59,7 @@ if %errorlevel% neq 0 (
 )
 
 :end
+
+if "%2" neq "" (
+    popd
+)

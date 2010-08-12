@@ -10,6 +10,11 @@ if "%1" equ "" (
     set version=%1
 )
 
+rem Optionally %2 is the trunk directory.
+if "%2" neq "" (
+    pushd "%2"
+)
+
 if exist apidocs.shfb del apidocs.shfb
 
 echo ^<project schemaVersion="1.6.0.7"^> >>apidocs.shfb
@@ -109,4 +114,6 @@ if exist new_apidocs (
     )
 )
 
-popd
+if "%2" neq "" (
+    popd
+)
