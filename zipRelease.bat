@@ -29,19 +29,19 @@ if exist "releasebin" (
     )
 )
 mkdir releasebin
-FOR /R "Azavea.Open.DAO\bin\Release" %%f IN (*.*) DO copy %%f "releasebin"
+FOR /R "Azavea.Open.DAO\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin"
 mkdir releasebin\CSV
-FOR /R "Azavea.Open.DAO.CSV\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\CSV"
+FOR /R "Azavea.Open.DAO.CSV\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\CSV"
 mkdir releasebin\Firebird
-FOR /R "Azavea.Open.DAO.Firebird\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\Firebird"
+FOR /R "Azavea.Open.DAO.Firebird\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\Firebird"
 mkdir releasebin\OleDb
-FOR /R "Azavea.Open.DAO.OleDb\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\OleDb"
+FOR /R "Azavea.Open.DAO.OleDb\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\OleDb"
 mkdir releasebin\PostgreSQL
-FOR /R "Azavea.Open.DAO.PostgreSQL\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\PostgreSQL"
+FOR /R "Azavea.Open.DAO.PostgreSQL\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\PostgreSQL"
 mkdir releasebin\SQLite
-FOR /R "Azavea.Open.DAO.SQLite\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\SQLite"
+FOR /R "Azavea.Open.DAO.SQLite\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\SQLite"
 mkdir releasebin\SQLServer
-FOR /R "Azavea.Open.DAO.SQLServer\bin\Release" %%f IN (*.*) DO copy %%f "releasebin\SQLServer"
+FOR /R "Azavea.Open.DAO.SQLServer\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\SQLServer"
 
 
 set filename=fastdao_!version!.zip
