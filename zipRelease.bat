@@ -44,7 +44,7 @@ mkdir releasebin\SQLServer
 FOR /R "Azavea.Open.DAO.SQLServer\bin\Release" %%f IN (*.*) DO copy "%%f" "releasebin\SQLServer"
 
 
-set filename=fastdao_!version!.zip
+set filename=FastDAO_!version!.zip
 if exist !filename! (
     del !filename!
     if %errorlevel% neq 0 (
