@@ -623,6 +623,8 @@ namespace Azavea.Open.DAO.Tests
         /// <exclude/>
         public string JoinField;
         /// <exclude/>
+        public string Name;
+        /// <exclude/>
         public JoinClass1()
         {
         }

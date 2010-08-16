@@ -118,9 +118,18 @@ namespace Azavea.Open.DAO.SQL
             string leftPrefix = leftAlias + ".";
             string rightAlias = "R_" + Shorten(rightMapping.Table);
             string rightPrefix = rightAlias + ".";
+            bool aliasingCols = _connDesc.NeedToAliasColumns();
+            bool usingAs = _connDesc.NeedAsForColumnAliases();
+            string colAliasPrefix = _connDesc.ColumnAliasPrefix();
+            string colAliasSuffix = _connDesc.ColumnAliasSuffix();
+            // Running out of descriptive var names... the above are like "[" and "]", this is
+            // "table." or whatever.
+            // Don't use punctuation to in the alias, not all databases (Access) can tolerate that.
+            string leftColAliasPrefix = aliasingCols ? leftAlias : leftPrefix;
+            string rightColAliasPrefix = aliasingCols ? rightAlias : rightPrefix;
 
             SqlDaJoinQuery retVal = _sqlJoinQueryCache.Get();
-            retVal.SetPrefixes(leftPrefix, rightPrefix);
+            retVal.SetPrefixes(leftColAliasPrefix, rightColAliasPrefix);
 
             retVal.Sql.Append("SELECT ");
             bool first = true;
@@ -135,12 +144,12 @@ namespace Azavea.Open.DAO.SQL
                     retVal.Sql.Append(", ");
                 }
                 retVal.Sql.Append(leftPrefix).Append(leftCol);
-                if (_connDesc.NeedToAliasColumns())
+                if (aliasingCols)
                 {
-                    retVal.Sql.Append(_connDesc.NeedAsForColumnAliases() ? " AS " : " ")
-                        .Append(_connDesc.ColumnAliasPrefix())
-                        .Append(leftPrefix).Append(leftCol)
-                        .Append(_connDesc.ColumnAliasSuffix());
+                    retVal.Sql.Append(usingAs ? " AS " : " ")
+                        .Append(colAliasPrefix)
+                        .Append(leftColAliasPrefix).Append(leftCol)
+                        .Append(colAliasSuffix);
                 }
             }
             foreach (string rightCol in rightMapping.AllDataColsByObjAttrs.Values)
@@ -154,12 +163,12 @@ namespace Azavea.Open.DAO.SQL
                     retVal.Sql.Append(", ");
                 }
                 retVal.Sql.Append(rightPrefix).Append(rightCol);
-                if (_connDesc.NeedToAliasColumns())
+                if (aliasingCols)
                 {
-                    retVal.Sql.Append(_connDesc.NeedAsForColumnAliases() ? " AS " : " ")
-                        .Append(_connDesc.ColumnAliasPrefix())
-                        .Append(rightPrefix).Append(rightCol)
-                        .Append(_connDesc.ColumnAliasSuffix());
+                    retVal.Sql.Append(usingAs ? " AS " : " ")
+                        .Append(colAliasPrefix)
+                        .Append(rightColAliasPrefix).Append(rightCol)
+                        .Append(colAliasSuffix);
                 }
             }
             retVal.Sql.Append(" FROM ");

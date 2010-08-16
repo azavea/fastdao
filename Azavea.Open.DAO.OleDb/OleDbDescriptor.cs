@@ -519,7 +519,7 @@ namespace Azavea.Open.DAO.OleDb
                 case DatabaseType.SQLSERVER:
                     return true;
                 case DatabaseType.ACCESS:
-                    return false;
+                    return true;
                 default:
                     throw new NotImplementedException("Support for type " + Type +
                                                       " is not yet fully implemented.");
@@ -544,6 +544,23 @@ namespace Azavea.Open.DAO.OleDb
         }
 
         /// <exclude/>
+        public override bool CanUseAliasInOrderClause()
+        {
+            switch (Type)
+            {
+                case DatabaseType.ORACLE:
+                    return true;
+                case DatabaseType.SQLSERVER:
+                    return true;
+                case DatabaseType.ACCESS:
+                    return false;
+                default:
+                    throw new NotImplementedException("Support for type " + Type +
+                                                      " is not yet fully implemented.");
+            }
+        }
+
+        /// <exclude/>
         public override string ColumnAliasPrefix()
         {
             switch (Type)
@@ -553,7 +570,7 @@ namespace Azavea.Open.DAO.OleDb
                 case DatabaseType.SQLSERVER:
                     return "[";
                 case DatabaseType.ACCESS:
-                    return "\"";
+                    return "[";
                 default:
                     throw new NotImplementedException("Support for type " + Type +
                                                       " is not yet fully implemented.");
@@ -570,24 +587,7 @@ namespace Azavea.Open.DAO.OleDb
                 case DatabaseType.SQLSERVER:
                     return "]";
                 case DatabaseType.ACCESS:
-                    return "\"";
-                default:
-                    throw new NotImplementedException("Support for type " + Type +
-                                                      " is not yet fully implemented.");
-            }
-        }
-
-        /// <exclude/>
-        public override bool ColumnAliasWrappersInResults()
-        {
-            switch (Type)
-            {
-                case DatabaseType.ORACLE:
-                    return false;
-                case DatabaseType.SQLSERVER:
-                    return false;
-                case DatabaseType.ACCESS:
-                    return true;
+                    return "]";
                 default:
                     throw new NotImplementedException("Support for type " + Type +
                                                       " is not yet fully implemented.");

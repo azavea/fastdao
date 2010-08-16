@@ -43,6 +43,10 @@ namespace Azavea.Open.DAO.SQL
     public class SqlDaLayer : AbstractDaLayer
     {
         /// <summary>
+        /// The alias we use for "COUNT (*)".
+        /// </summary>
+        public const string COUNT_COL_ALIAS = "gb_count";
+        /// <summary>
         /// From this class on down, we can always treat it as a SqlConnectionDescriptor.
         /// </summary>
         protected new AbstractSqlConnectionDescriptor _connDesc;
@@ -202,7 +206,7 @@ namespace Azavea.Open.DAO.SQL
                 query.Sql.Append("AS ");
             }
             query.Sql.Append(_connDesc.ColumnAliasPrefix()).
-                Append("gb_count").Append(_connDesc.ColumnAliasSuffix());
+                Append(COUNT_COL_ALIAS).Append(_connDesc.ColumnAliasSuffix());
             GroupBysToStartOfQuery(query, groupExpressions, mapping);
             query.Sql.Append(" FROM ");
             query.Sql.Append(mapping.Table);
@@ -240,14 +244,10 @@ namespace Azavea.Open.DAO.SQL
             // Read each row and store it as a GroupCountResult.
             while (reader.Read())
             {
-                // We aliased the count as "gb_count".
+                // We aliased the count as COUNT_COL_ALIAS.
                 // Some databases return other numeric types, like "decimal", so you can't
                 // just call reader.GetInt.
-                string colName = "gb_count";
-                if (_connDesc.ColumnAliasWrappersInResults())
-                {
-                    colName = _connDesc.ColumnAliasPrefix() + colName + _connDesc.ColumnAliasSuffix();
-                }
+                string colName = COUNT_COL_ALIAS;
                 int count = (int)CoerceType(typeof(int), reader.GetValue(reader.GetOrdinal(colName)));
                 IDictionary<string, object> values = new CheckedDictionary<string, object>();
                 int groupByNum = 0;
@@ -274,10 +274,6 @@ namespace Azavea.Open.DAO.SQL
         {
             // We aliased the group bys in order as "gb_0", "gb_1", etc.
             string colName = "gb_" + number;
-            if (_connDesc.ColumnAliasWrappersInResults())
-            {
-                colName = _connDesc.ColumnAliasPrefix() + colName + _connDesc.ColumnAliasSuffix();
-            }
             int colNum = reader.GetOrdinal(colName);
             object value = reader.IsDBNull(colNum) ? null : reader.GetValue(colNum);
             if (expression is MemberGroupExpression)
@@ -782,13 +778,17 @@ namespace Azavea.Open.DAO.SQL
                 {
                     case SortType.Asc:
                         orderClauseToAddTo.Append(order is GroupCountSortOrder
-                            ? _connDesc.ColumnAliasPrefix() + "gb_count" + _connDesc.ColumnAliasSuffix()
+                            ? (_connDesc.CanUseAliasInOrderClause()
+                                ? (_connDesc.ColumnAliasPrefix() + COUNT_COL_ALIAS + _connDesc.ColumnAliasSuffix())
+                                : "COUNT(*)")
                             : mapping.AllDataColsByObjAttrs[order.Property]);
                         orderClauseToAddTo.Append(" ASC");
                         break;
                     case SortType.Desc:
                         orderClauseToAddTo.Append(order is GroupCountSortOrder
-                            ? "gb_count"
+                            ? (_connDesc.CanUseAliasInOrderClause()
+                                ? (_connDesc.ColumnAliasPrefix() + COUNT_COL_ALIAS + _connDesc.ColumnAliasSuffix())
+                                : "COUNT(*)")
                             : mapping.AllDataColsByObjAttrs[order.Property]);
                         orderClauseToAddTo.Append(" DESC");
                         break;
@@ -815,7 +815,8 @@ namespace Azavea.Open.DAO.SQL
                 throw new ArgumentException("Cannot execute a query not created by me.");
             }
             SqlDaQuery sqlQuery = (SqlDaQuery)query;
-            SqlConnectionUtilities.XSafeQuery(_connDesc, (SqlTransaction)transaction, sqlQuery.Sql.ToString(), sqlQuery.Params, invokeMe, parameters);
+            SqlConnectionUtilities.XSafeQuery(_connDesc, (SqlTransaction)transaction, sqlQuery.Sql.ToString(),
+                sqlQuery.Params, invokeMe, parameters);
         }
 
         /// <exclude/>

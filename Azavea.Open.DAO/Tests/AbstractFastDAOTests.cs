@@ -790,7 +790,23 @@ namespace Azavea.Open.DAO.Tests
             DaoCriteria crit = new DaoCriteria();
             crit.Orders.Add(new GroupCountSortOrder());
             crit.Orders.Add(new SortOrder("IntVal", SortType.Asc));
-            AssertGroupByOneResults(_nullDAO.GetCount(crit, exprs));
+            AssertGroupByOneAscResults(_nullDAO.GetCount(crit, exprs));
+        }
+        ///<exclude/>
+        [Test]
+        public void TestGroupByOneDesc()
+        {
+            if (!_supportsGroupBy)
+            {
+                Assert.Ignore("This data source does not support aggregation / group by.");
+            }
+            PrepNullableTable();
+            List<AbstractGroupExpression> exprs = new List<AbstractGroupExpression>();
+            exprs.Add(new MemberGroupExpression("IntVal"));
+            DaoCriteria crit = new DaoCriteria();
+            crit.Orders.Add(new GroupCountSortOrder(SortType.Desc));
+            crit.Orders.Add(new SortOrder("IntVal", SortType.Asc));
+            AssertGroupByOneDescResults(_nullDAO.GetCount(crit, exprs));
         }
         ///<exclude/>
         [Test]
@@ -806,9 +822,25 @@ namespace Azavea.Open.DAO.Tests
             DaoCriteria crit = new DaoCriteria();
             crit.Orders.Add(new GroupCountSortOrder());
             crit.Orders.Add(new SortOrder("IntVal", SortType.Asc));
-            AssertGroupByOneResults(_nullDictDAO.GetCount(crit, exprs));
+            AssertGroupByOneAscResults(_nullDictDAO.GetCount(crit, exprs));
         }
-        private void AssertGroupByOneResults(List<GroupCountResult> results)
+        ///<exclude/>
+        [Test]
+        public void TestGroupByOneDescDictionary()
+        {
+            if (!_supportsGroupBy)
+            {
+                Assert.Ignore("This data source does not support aggregation / group by.");
+            }
+            PrepNullDictTable();
+            List<AbstractGroupExpression> exprs = new List<AbstractGroupExpression>();
+            exprs.Add(new MemberGroupExpression("IntVal"));
+            DaoCriteria crit = new DaoCriteria();
+            crit.Orders.Add(new GroupCountSortOrder(SortType.Desc));
+            crit.Orders.Add(new SortOrder("IntVal", SortType.Asc));
+            AssertGroupByOneDescResults(_nullDictDAO.GetCount(crit, exprs));
+        }
+        private void AssertGroupByOneAscResults(List<GroupCountResult> results)
         {
             Assert.IsNotNull(results, "Results should not be null.");
             DumpGroupResults(results);
@@ -818,6 +850,17 @@ namespace Azavea.Open.DAO.Tests
             Assert.AreEqual(null, results[0].GroupValues["IntVal"], "First result had wrong value.");
             Assert.AreEqual(3, results[1].Count, "Wrong number of 123s.");
             Assert.AreEqual(123, results[1].GroupValues["IntVal"], "Second result had wrong value.");
+        }
+        private void AssertGroupByOneDescResults(List<GroupCountResult> results)
+        {
+            Assert.IsNotNull(results, "Results should not be null.");
+            DumpGroupResults(results);
+            Assert.AreEqual(2, results.Count, "Wrong number of results.");
+            // Regardless of whether we expect nulls first, we're first sorting by count.
+            Assert.AreEqual(3, results[0].Count, "Wrong number of 123s.");
+            Assert.AreEqual(123, results[0].GroupValues["IntVal"], "Second result had wrong value.");
+            Assert.AreEqual(2, results[1].Count, "Wrong number of nulls.");
+            Assert.AreEqual(null, results[1].GroupValues["IntVal"], "First result had wrong value.");
         }
 
         ///<exclude/>

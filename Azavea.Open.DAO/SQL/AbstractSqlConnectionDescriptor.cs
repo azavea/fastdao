@@ -195,7 +195,7 @@ namespace Azavea.Open.DAO.SQL
         /// Does this database require that we alias the columns explicitly if we are
         /// aliasing the table name?  Most DBs will alias the columns for you (I.E. if you
         /// "SELECT ID FROM TABLE1 AS ALIAS1" then the column will be called "ALIAS1.ID", etc).
-        /// However some require that you alias the columns specifically (cough SQLite cough).
+        /// However some require that you alias the columns specifically (cough SQLite, Access cough).
         /// </summary>
         /// <returns>True if aliasing the table names is not enough.</returns>
         public abstract bool NeedToAliasColumns();
@@ -207,6 +207,15 @@ namespace Azavea.Open.DAO.SQL
         /// <returns>True if "AS" is required when aliasing a column.</returns>
         public abstract bool NeedAsForColumnAliases();
 
+        /// <summary>
+        /// Once we've aliased a function (such as COUNT(*)), can we use that alias
+        /// in the order by clause or do we need to put the function again?
+        /// </summary>
+        /// <returns>True if we want to use the ColumnAliasPrefix and ColumnAliasSuffix in ORDER BY clauses.</returns>
+        public virtual bool CanUseAliasInOrderClause()
+        {
+            return true;
+        }
         /// <summary>
         /// Some databases want the " AS " keyword, some want the alias in quotes
         /// (cough SQLite cough), or square brackets (cough Microsoft cough), or 
@@ -226,17 +235,6 @@ namespace Azavea.Open.DAO.SQL
         /// <returns>The keyword, quotes, brackets, etc used after the alias
         ///          when aliasing a column.</returns>
         public abstract string ColumnAliasSuffix();
-
-        /// <summary>
-        /// Some databases (cough MS Access cough) include the prefix/suffix
-        /// around the alias in the result "column" names.  
-        /// </summary>
-        /// <returns>Whether to expect quotes/brackets/etc around the 
-        ///          aliased column names in the DataReader.</returns>
-        public virtual bool ColumnAliasWrappersInResults()
-        {
-            return false;
-        }
 
         /// <summary>
         /// Some databases want the " AS " keyword, some don't (cough Oracle cough).

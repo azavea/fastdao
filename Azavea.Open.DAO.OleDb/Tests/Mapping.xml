@@ -54,7 +54,8 @@
 			<generator class="native"/>
 		</id>
 		<property name="JoinField" column="joinme"/>
-	</class>
+    <property name="Name" column="name"/>
+  </class>
 	<class name="Azavea.Open.DAO.Tests.JoinClass2,Azavea.Open.DAO" table="Join2">
 		<id name="ID" column="ID">
 			<generator class="native"/>
