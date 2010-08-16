@@ -488,7 +488,9 @@ namespace Azavea.Open.DAO
         /// </summary>
         public override string ToString()
         {
-            return "ClassMapping(type " + ClassType.FullName + " to table " + Table + ")";
+            return "ClassMapping(type " +
+                (ClassType == null ? TypeName : ClassType.FullName) +
+                " to table " + Table + ")";
         }
     }
 
