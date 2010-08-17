@@ -96,22 +96,33 @@ if not %errorlevel% equ 0 (
     echo Error: Error while running sandcastle.
     exit /b 1
 )
+echo Removing really old API docs if they exist...
 if exist old_apidocs (
     rd /s /q old_apidocs
+    if %errorlevel% neq 0 (
+        echo Error: Unable to remove old docs dir.
+        exit /b 2
+    )
 )
+
 if exist new_apidocs (
+    echo Moving old API docs if they exist...
     if exist api_!version! (
-        move apidocs old_apidocs
+        move api_!version! old_apidocs
         if %errorlevel% neq 0 (
             echo Error: Unable to rename current docs dir to old.
-            exit /b 2
+            exit /b 3
         )
     )
+    echo Moving new API docs to correct directory name...
     move new_apidocs api_!version!
     if %errorlevel% neq 0 (
         echo Error: Unable to rename new docs dir to current.
-        exit /b 3
+        exit /b 4
     )
+) else (
+    echo Error: New docs dir not found.
+    exit /b 5
 )
 
 if "%2" neq "" (
