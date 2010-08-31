@@ -709,8 +709,18 @@ namespace Azavea.Open.DAO.SQL
             {
                 CriteriaExpression critExp = (CriteriaExpression)expr;
                 queryToAddTo.Sql.Append(trueOrNot ? "(" : " NOT (");
-                ExpressionListToQuery(queryToAddTo, critExp.NestedCriteria.BoolType,
-                                      critExp.NestedCriteria.Expressions, mapping, colPrefix);
+                // This is slightly hacky, but basically even though we're now partway through
+                // assembling a SQL statement, we might have an empty nested expression.  So rather
+                // than having "AND () AND" which isn't valid, we put "1=1" for empty nested criteria.
+                if ((critExp.NestedCriteria.Expressions != null) && (critExp.NestedCriteria.Expressions.Count > 0))
+                {
+                    ExpressionListToQuery(queryToAddTo, critExp.NestedCriteria.BoolType,
+                                          critExp.NestedCriteria.Expressions, mapping, colPrefix);
+                }
+                else
+                {
+                    queryToAddTo.Sql.Append("1=1");
+                }
                 queryToAddTo.Sql.Append(")");
             }
             else if (expr is HandWrittenExpression)

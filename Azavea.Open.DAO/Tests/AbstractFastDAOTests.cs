@@ -132,6 +132,20 @@ namespace Azavea.Open.DAO.Tests
 
         /// <exclude/>
         [Test]
+        public void TestEmptyNestedCriteria()
+        {
+            DaoCriteria emptyCrit = new DaoCriteria();
+            DaoCriteria parentCrit = new DaoCriteria();
+            parentCrit.Expressions.Add(new CriteriaExpression(emptyCrit));
+            IList<NameClass> list1 = _nameDAO.Get();
+            IList<NameClass> list2 = _nameDAO.Get(parentCrit);
+
+            Assert.Greater(list1.Count, 1, "Should be more than one name in the DB.");
+            Assert.AreEqual(list1.Count, list2.Count, "Empty nested criteria should produce the same results as no criteria.");
+        }
+
+        /// <exclude/>
+        [Test]
         public void TestSimpleReadDictionary()
         {
             IList<CheckedDictionary<string,object>> list = _nameDictDAO.Get();
