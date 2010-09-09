@@ -53,5 +53,13 @@ namespace Azavea.Open.DAO.OleDb.Tests
             SqlConnectionUtilities.XSafeCommand((AbstractSqlConnectionDescriptor)_connDesc, "INSERT INTO NameTable VALUES('Jeff')", null);
             SqlConnectionUtilities.XSafeCommand((AbstractSqlConnectionDescriptor)_connDesc, "INSERT INTO NameTable VALUES('Megan')", null);
         }
+        /// <exclude/>
+        [Test]
+        public void TestGetMappingFromSchema()
+        {
+            SqlUtilTests.TestGetNullableTableMappingFromSchema((AbstractSqlConnectionDescriptor)
+                ConnectionDescriptor.LoadFromConfig(new Config("..\\..\\Tests\\SqlServerDao.config", "SqlServerDaoConfig"), "DAO"),
+                "Nullabletable");
+        }
     }
 }

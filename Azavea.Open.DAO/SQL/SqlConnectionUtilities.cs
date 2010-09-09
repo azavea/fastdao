@@ -1106,7 +1106,8 @@ namespace Azavea.Open.DAO.SQL
         /// handling logic here in the utility class.
         /// </summary>
         /// <param name="connDesc">Connection descriptor for the database.</param>
-        /// <param name="name">The name of the type of object you want schema info on?</param>
+        /// <param name="name">The name of the type of object you want schema info on.
+        ///                    For example, "Columns" to get info on the coluns.</param>
         /// <param name="restrictions">A magic string array that means something to
         ///                            DbConnection.GetSchema.  Should be a string array
         ///                            of the following restrictions:
@@ -1137,6 +1138,46 @@ namespace Azavea.Open.DAO.SQL
                 DbCaches.Connections.Return(connDesc, conn);
             }
             return retVal;
+        }
+
+        /// <summary>
+        /// Generates a simplistic classmapping (without changing any column/field names) from a
+        /// table's schema.  Intended for times when you are transferring data without really using it,
+        /// for example from a DB to a CSV.  Will most likely only be useful for a DictionaryDAO since
+        /// there is no defined .NET class to map to.
+        /// 
+        /// All column names will be returned in caps.
+        /// </summary>
+        /// <param name="connDesc">Connection descriptor for the database.</param>
+        /// <param name="tableName">Name of the table to generate a mapping for.</param>
+        /// <returns>A class mapping, the type name will be the table name, every column will be
+        ///          mapped to a "field" of the same name, and no types will be specified.</returns>
+        public static ClassMapping GenerateMappingFromSchema(AbstractSqlConnectionDescriptor connDesc,
+            string tableName)
+        {
+            IList<ClassMapColDefinition> mapCols = new List<ClassMapColDefinition>();
+            // Tolerate fully qualified table names.
+            string[] tableNameParts = tableName.Split('.');
+            string[] searchRestrictions = new string[4];
+            // Copy the parts back starting at index 2 (2 = unadorned table name, 1 = namespace, etc).
+            int destIdx = 2;
+            for (int x = tableNameParts.Length - 1; x >= 0 && destIdx >= 0; x--)
+            {
+                searchRestrictions[destIdx--] = tableNameParts[x];
+            }
+            DataTable schema = GetSchema(connDesc, "Columns", searchRestrictions);
+            // Now this should have just the columns that are on the table we want.
+            foreach (DataRow row in schema.Rows)
+            {
+                // The first three columns in the data rows are the fully qualified table name.
+                // Since all we need are the columns, we can ignore them.
+                if (!row.IsNull(3))
+                {
+                    string colName = row[3].ToString().ToUpper();
+                    mapCols.Add(new ClassMapColDefinition(colName, colName, null));
+                }
+            }
+            return new ClassMapping(tableName, tableName, mapCols, false);
         }
 
         #endregion

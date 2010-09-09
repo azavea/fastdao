@@ -23,6 +23,7 @@
 
 using System.IO;
 using Azavea.Open.Common;
+using Azavea.Open.DAO.SQL;
 using Azavea.Open.DAO.Tests;
 using NUnit.Framework;
 
@@ -43,6 +44,14 @@ namespace Azavea.Open.DAO.Firebird.Tests
             // Reset the unit test database by copying the template, since we don't know what any
             // other unit tests (or a previous run of this test) has done to the state of the db.
             File.Copy("..\\..\\Tests\\Template\\UnitTest.fdb", "..\\..\\Tests\\UnitTest.fdb", true);
+        }
+        /// <exclude/>
+        [Test]
+        public void TestGetMappingFromSchema()
+        {
+            SqlUtilTests.TestGetNullableTableMappingFromSchema((AbstractSqlConnectionDescriptor)
+                ConnectionDescriptor.LoadFromConfig(new Config("..\\..\\Tests\\FirebirdDao.config", "FirebirdDaoConfig"), "DAO"),
+                "NULLABLETABLE");
         }
     }
 }

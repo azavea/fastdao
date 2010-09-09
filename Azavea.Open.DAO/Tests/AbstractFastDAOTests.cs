@@ -122,6 +122,16 @@ namespace Azavea.Open.DAO.Tests
         }
 
         /// <exclude/>
+        protected AbstractFastDAOTests(Config cfg, string configSection, bool hasNativeBoolean,
+                                       bool canGetAutoIDs, bool canVerifyWithSQL, bool supportsGroupBy,
+                                       bool expectNullsFirst, bool nativeBoolReturnsAsBool, bool supports)
+            : this(cfg, configSection, hasNativeBoolean, canGetAutoIDs, canVerifyWithSQL,
+            supportsGroupBy, expectNullsFirst)
+        {
+            _nativeBooleanReturnsAsBool = nativeBoolReturnsAsBool;
+        }
+
+        /// <exclude/>
         [Test]
         public void TestSimpleRead()
         {

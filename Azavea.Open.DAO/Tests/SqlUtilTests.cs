@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using Azavea.Open.Common;
 using Azavea.Open.DAO.SQL;
 using NUnit.Framework;
 
@@ -164,6 +165,24 @@ namespace Azavea.Open.DAO.Tests
             Assert.Less(endMine - startMine, max, "took too long!  Input: " +
                 input + ", type: " + desiredType);
         }
-
+        /// <summary>
+        /// Tests the classmapping generation off the nullable table schema.
+        /// </summary>
+        /// <param name="connDesc">Connection descriptor for your particular database.</param>
+        /// <param name="nullableTableName">Correctly-cased name of the nullable table (some DBs
+        ///                                 are case sensitive (cough oracle, postgresql cough)</param>
+        public static void TestGetNullableTableMappingFromSchema(AbstractSqlConnectionDescriptor connDesc,
+            string nullableTableName)
+        {
+            ClassMapping map = SqlConnectionUtilities.GenerateMappingFromSchema(connDesc, nullableTableName);
+            Assert.AreEqual(map.TypeName, nullableTableName, "Wrong 'type' name on the generated class map.");
+            Assert.AreEqual(map.Table, nullableTableName, "Wrong table name on the generated class map.");
+            Assert.AreEqual(5, map.AllObjAttrsByDataCol.Count, "Wrong number of mapped fields.");
+            Assert.AreEqual("ID", map.AllObjAttrsByDataCol["ID"], "Column was mapped incorrectly.");
+            Assert.AreEqual("BOOLCOL", map.AllObjAttrsByDataCol["BoolCol"], "Column was mapped incorrectly.");
+            Assert.AreEqual("INTCOL", map.AllObjAttrsByDataCol["IntCol"], "Column was mapped incorrectly.");
+            Assert.AreEqual("FLOATCOL", map.AllObjAttrsByDataCol["FloatCol"], "Column was mapped incorrectly.");
+            Assert.AreEqual("DATECOL", map.AllObjAttrsByDataCol["DateCol"], "Column was mapped incorrectly.");
+        }
     }
 }

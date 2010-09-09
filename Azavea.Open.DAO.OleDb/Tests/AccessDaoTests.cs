@@ -23,6 +23,7 @@
 
 using System.IO;
 using Azavea.Open.Common;
+using Azavea.Open.DAO.SQL;
 using Azavea.Open.DAO.Tests;
 using NUnit.Framework;
 
@@ -44,5 +45,15 @@ namespace Azavea.Open.DAO.OleDb.Tests
             // other unit tests (or a previous run of this test) has done to the state of the db.
             File.Copy("..\\..\\Tests\\Template\\UnitTest.mdb", "..\\..\\Tests\\UnitTest.mdb", true);
         }
+
+        /// <exclude/>
+        [Test]
+        public void TestGetMappingFromSchema()
+        {
+            SqlUtilTests.TestGetNullableTableMappingFromSchema((AbstractSqlConnectionDescriptor)
+                ConnectionDescriptor.LoadFromConfig(new Config("..\\..\\Tests\\AccessDao.config",
+                    "AccessDaoConfig"), "DAO"),
+                "Nullabletable");
+        } 
     }
 }

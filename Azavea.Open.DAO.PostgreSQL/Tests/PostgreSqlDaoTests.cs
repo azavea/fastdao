@@ -51,5 +51,13 @@ namespace Azavea.Open.DAO.PostgreSQL.Tests
             SqlConnectionUtilities.XSafeCommand((AbstractSqlConnectionDescriptor)_connDesc, "INSERT INTO NameTable VALUES(5, 'Jeff')", null);
             SqlConnectionUtilities.XSafeCommand((AbstractSqlConnectionDescriptor)_connDesc, "INSERT INTO NameTable VALUES(6, 'Megan')", null);
         }
+        /// <exclude/>
+        [Test]
+        public void TestGetMappingFromSchema()
+        {
+            SqlUtilTests.TestGetNullableTableMappingFromSchema((AbstractSqlConnectionDescriptor)
+                ConnectionDescriptor.LoadFromConfig(new Config("..\\..\\Tests\\PostgreSqlDao.config", "PostgreSqlDaoConfig"), "DAO"),
+                "nullabletable");
+        }
     }
 }
