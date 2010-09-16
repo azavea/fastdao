@@ -50,6 +50,50 @@ namespace Azavea.Open.DAO.CSV.Tests
 
         /// <exclude/>
         [Test]
+        public void TestWriteCsvWithQuotes()
+        {
+            StringWriter writer = new StringWriter();
+
+            // This is testing to verify the CsvDescriptor constructor that takes a 
+            // Writer and a CVSQuoteLevel.
+            CsvTestObj testObj1 = new CsvTestObj();
+            CheckedDictionary<string, object> testDict1 = new CheckedDictionary<string, object>();
+            testObj1.One = 50;
+            testObj1.Two = -1.0;
+            testObj1.Three = "Yo";
+            testObj1.Four = new DateTime(2001, 1, 1, 1, 1, 1);
+            testObj1.Five = null;
+            testDict1["One"] = testObj1.One;
+            testDict1["Two"] = testObj1.Two;
+            testDict1["Three"] = testObj1.Three;
+            testDict1["Four"] = testObj1.Four;
+            testDict1["Five"] = testObj1.Five;
+
+            CsvTestObj testObj2 = new CsvTestObj();
+            CheckedDictionary<string, object> testDict2 = new CheckedDictionary<string, object>();
+            testObj2.One = int.MaxValue;
+            testObj2.Two = double.MinValue;
+            testObj2.Three = null;
+            testObj2.Four = DateTime.MinValue;
+            testObj2.Five = "";
+            testDict2["One"] = testObj2.One;
+            testDict2["Two"] = testObj2.Two;
+            testDict2["Three"] = testObj2.Three;
+            testDict2["Four"] = testObj2.Four;
+            testDict2["Five"] = testObj2.Five;
+
+            ClassMapping mapping1 = MakeMapping("n/a", "WriteOne", true);
+            CsvDescriptor desc1 = new CsvDescriptor(writer, CsvQuoteLevel.QuoteStrings);
+            DictionaryDao dao1 = new DictionaryDao(desc1, mapping1);
+            dao1.Insert(testDict1);
+            dao1.Insert(testDict2);
+
+            string csv = writer.ToString();
+            Assert.IsNotEmpty(csv, "The writer should not return an empty string. ");
+        }
+
+        /// <exclude/>
+        [Test]
         public void TestWriteCsv()
         {
             CsvTestObj testObj1 = new CsvTestObj();

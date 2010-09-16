@@ -179,7 +179,7 @@ namespace Azavea.Open.DAO.CSV
         /// <param name="writer">The writer to "insert" to.</param>
         /// <param name="quoteLevel">How verbosely do we quote values we write.</param>
         public CsvDescriptor(TextWriter writer, CsvQuoteLevel quoteLevel)
-            : this(CsvConnectionType.Reader, null, writer, null, quoteLevel) { }
+            : this(CsvConnectionType.Writer, null, writer, null, quoteLevel) { }
 
         /// <summary>
         /// Creates a descriptor using a StreamReader.  See CsvConnectionType for a description
