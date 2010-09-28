@@ -1155,7 +1155,29 @@ namespace Azavea.Open.DAO.SQL
         public static ClassMapping GenerateMappingFromSchema(AbstractSqlConnectionDescriptor connDesc,
             string tableName)
         {
-            IList<ClassMapColDefinition> mapCols = new List<ClassMapColDefinition>();
+            return GenerateMappingFromSchema(connDesc, tableName, null);
+        }
+
+        /// <summary>
+        /// Generates a simplistic classmapping (without changing any column/field names) from a
+        /// table's schema.  Intended for times when you are transferring data without really using it,
+        /// for example from a DB to a CSV.  Will most likely only be useful for a DictionaryDAO since
+        /// there is no defined .NET class to map to.
+        /// 
+        /// All column names will be returned in caps.
+        /// </summary>
+        /// <param name="connDesc">Connection descriptor for the database.</param>
+        /// <param name="tableName">Name of the table to generate a mapping for.</param>
+        /// <param name="columnSorter">Since auto-generated column mappings are likely used for
+        ///                            purposes such as exporting to a CSV, if you wish the columns
+        ///                            to be sorted in some sort of order, you may provide an
+        ///                            IComparer to do so.  May be null.</param>
+        /// <returns>A class mapping, the type name will be the table name, every column will be
+        ///          mapped to a "field" of the same name, and no types will be specified.</returns>
+        public static ClassMapping GenerateMappingFromSchema(AbstractSqlConnectionDescriptor connDesc,
+            string tableName, IComparer<ClassMapColDefinition> columnSorter)
+        {
+            List<ClassMapColDefinition> mapCols = new List<ClassMapColDefinition>();
             // Tolerate fully qualified table names.
             string[] tableNameParts = tableName.Split('.');
             string[] searchRestrictions = new string[4];
@@ -1176,6 +1198,10 @@ namespace Azavea.Open.DAO.SQL
                     string colName = row[3].ToString().ToUpper();
                     mapCols.Add(new ClassMapColDefinition(colName, colName, null));
                 }
+            }
+            if (columnSorter != null)
+            {
+                mapCols.Sort(columnSorter);
             }
             return new ClassMapping(tableName, tableName, mapCols, false);
         }
