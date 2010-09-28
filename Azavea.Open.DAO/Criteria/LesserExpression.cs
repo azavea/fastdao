@@ -60,5 +60,11 @@ namespace Azavea.Open.DAO.Criteria
         {
             return new LesserExpression(Property, Value, !_trueOrNot);
         }
+
+        /// <exclude/>
+        public override string ToString()
+        {
+            return Property + (TrueOrNot() ? " < " : " >= ") + Value;
+        }
     }
 }
