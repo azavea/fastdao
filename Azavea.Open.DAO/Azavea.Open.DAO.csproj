@@ -57,6 +57,7 @@
     <Compile Include="Criteria\Grouping\MemberGroupExpression.cs" />
     <Compile Include="GroupCountResult.cs" />
     <Compile Include="IConnectionDescriptor.cs" />
+    <Compile Include="IDaDdlLayer.cs" />
     <Compile Include="ITransaction.cs">
       <SubType>Code</SubType>
     </Compile>

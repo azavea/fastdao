@@ -35,7 +35,7 @@ namespace Azavea.Open.DAO.Memory
     /// <summary>
     /// Data access layer implementation that simply stores objects in memory.
     /// </summary>
-    public class MemoryDaLayer : UnqueryableDaLayer
+    public class MemoryDaLayer : UnqueryableDaLayer, IDaDdlLayer
     {
         private readonly IDictionary<string, IDictionary<string, MemoryObject>> _datastore =
             new CheckedDictionary<string, IDictionary<string, MemoryObject>>();
@@ -288,7 +288,8 @@ namespace Azavea.Open.DAO.Memory
         /// <param name="groupExpressions">The fields/expressions to aggregate on when counting.</param>
         /// <returns>The number of objects that match the criteria, plus the values of those objects
         ///          for the fields that were aggregated on.</returns>
-        public override List<GroupCountResult> GetCount(ITransaction transaction, ClassMapping mapping, DaoCriteria crit, ICollection<AbstractGroupExpression> groupExpressions)
+        public override List<GroupCountResult> GetCount(ITransaction transaction, ClassMapping mapping,
+            DaoCriteria crit, ICollection<AbstractGroupExpression> groupExpressions)
         {
             throw new NotImplementedException();
         }
@@ -374,5 +375,204 @@ namespace Azavea.Open.DAO.Memory
             }
             return retVal;
         }
+
+        /// <summary>
+        /// Indexes the data for faster queries.  Some data sources may not support indexes
+        /// (such as CSV files), in which case this should throw a NotSupportedException.
+        /// 
+        /// If the data source supports indexes, but support for creating them is not yet
+        /// implemented, this should throw a NotImplementedException.
+        /// </summary>
+        /// <param name="name">Name of the index.  Some data sources require names for indexes,
+        ///                    and even if not this is required so the index can be deleted if desired.</param>
+        /// <param name="mapping">ClassMapping for the data that is being indexed.</param>
+        /// <param name="propertyNames">Names of the data properties to include in the index (in order).</param>
+        public void CreateIndex(string name, ClassMapping mapping, ICollection<string> propertyNames)
+        {
+            throw new NotImplementedException("TODO");
+        }
+
+        /// <summary>
+        /// Removes an index on the data for slower queries (but usually faster inserts/updates/deletes).
+        /// Some data sources may not support indexes (such as CSV files), 
+        /// in which case this method should be a no-op.
+        /// 
+        /// If the data source supports indexes, but support for creating them is not yet
+        /// implemented, this should throw a NotImplementedException.
+        /// </summary>
+        /// <param name="name">Name of the index to delete.</param>
+        /// <param name="mapping">ClassMapping for the data that was being indexed.</param>
+        public void DeleteIndex(string name, ClassMapping mapping)
+        {
+            throw new NotImplementedException("TODO");
+        }
+
+        /// <summary>
+        /// Returns whether an index with this name exists or not.  NOTE: This does NOT
+        /// verify what properties the index is on, merely whether an index with this
+        /// name is already present.
+        /// </summary>
+        /// <param name="name">Name of the index to check for.</param>
+        /// <param name="mapping">ClassMapping for the data that may be indexed.</param>
+        /// <returns>Whether an index with this name exists in the data source.</returns>
+        public bool IndexExists(string name, ClassMapping mapping)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Ensures the sequence exists.
+        /// NOTE: It is not necessary to call this method, as this data store creates
+        /// sequences on the fly when they are first accessed.
+        /// </summary>
+        /// <param name="name">Name of the new sequence to create.</param>
+        public void CreateSequence(string name)
+        {
+            lock (_sequences)
+            {
+                if (!_sequences.ContainsKey(name))
+                {
+                    _sequences[name] = 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes a sequence.
+        /// NOTE: This data source creates seuqences on the fly when they are accessed,
+        /// so this will have the effect that the next access of the sequence will get
+        /// a "1" rather than the current next value.
+        /// </summary>
+        /// <param name="name">Name of the sequence to delete.</param>
+        public void DeleteSequence(string name)
+        {
+            lock (_sequences)
+            {
+                if (_sequences.ContainsKey(name))
+                {
+                    _sequences.Remove(name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns whether a sequence with this name exists or not.
+        /// </summary>
+        /// <param name="name">Name of the sequence to check for.</param>
+        /// <returns>Whether a sequence with this name exists in the data source.</returns>
+        public bool SequenceExists(string name)
+        {
+            lock (_sequences)
+            {
+                return _sequences.ContainsKey(name);
+            }
+        }
+
+        /// <summary>
+        /// Does nothing.  This data store does not support store houses.
+        /// </summary>
+        public void CreateStoreHouse()
+        {
+            // no-op
+        }
+
+        /// <summary>
+        /// Does nothing.  This data store does not support store houses.
+        /// </summary>
+        public void DeleteStoreHouse()
+        {
+            // no-op
+        }
+
+        /// <summary>
+        /// Always returns false.  This data store does not support store houses.
+        /// </summary>
+        /// <returns>Returns true if you need to call "CreateStoreHouse"
+        ///          before storing any data.</returns>
+        public bool StoreHouseMissing()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Creates the store room specified in the connection descriptor.
+        /// 
+        /// NOTE: It is not necessary to call this method, as this data store will
+        /// create the store room on the fly if it does not exist.
+        /// </summary>
+        /// <param name="mapping">ClassMapping for the data that will be stored in this room.</param>
+        public void CreateStoreRoom(ClassMapping mapping)
+        {
+            // This will create it if it doesn't exist.
+            GetTable(mapping);
+        }
+
+        /// <summary>
+        /// Deletes the store room specified in the connection descriptor.
+        /// 
+        /// NOTE: This data store will create the store room on the fly when accessed, so
+        /// this method is effectively the same as just deleting all the records.
+        /// </summary>
+        /// <param name="mapping">ClassMapping for the data that was stored in this room.</param>
+        public void DeleteStoreRoom(ClassMapping mapping)
+        {
+            lock (_datastore)
+            {
+                if (_datastore.ContainsKey(mapping.Table))
+                {
+                    _datastore.Remove(mapping.Table);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Always returns false.  This data store will create the storeroom on the fly
+        /// if it is missing.
+        /// </summary>
+        /// <returns>Returns true if you need to call "CreateStoreRoom"
+        ///          before storing any data.</returns>
+        public bool StoreRoomMissing()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Uses some form of introspection to determine what data is stored in
+        /// this data store, and generates a ClassMapping that can be immediately
+        /// used with a DictionaryDAO.  As much data as practical will be populated
+        /// on the ClassMapping, at a bare minimum the Table (typically set to
+        /// the storeRoomName passed in, or the more correct or fully qualified version
+        /// of that name), the TypeName (set to the storeRoomName, since we have no
+        /// .NET type), and the "data cols" and "obj attrs" will be the list of 
+        /// attributes / columns in the data source, mapped to themselves.
+        /// </summary>
+        /// <param name="storeRoomName">The name of the storeroom (I.E. table).  May be null
+        ///                             if this data source does not use store rooms.</param>
+        /// <param name="columnSorter">If you wish the columns / attributes to be in a particular
+        ///                            order, supply this optional parameter.  May be null.</param>
+        /// <returns>A ClassMapping that can be used with a DictionaryDAO.</returns>
+        public ClassMapping GenerateClassMappingFromStoreRoom(string storeRoomName, IComparer<ClassMapColDefinition> columnSorter)
+        {
+            throw new NotSupportedException("This data store is created entirely off the data stored in it, and has no intrinsic knowledge of data structure.");
+        }
+    }
+    /// <summary>
+    /// TODO: Not done yet.
+    /// </summary>
+    public class MemoryTable
+    {
+        public IDictionary<string, IDictionary<object, IList<MemoryObject>>> Indexes = 
+            new Dictionary<string, IDictionary<object, IList<MemoryObject>>>();
+        public IDictionary<string, MemoryObject> Values = new Dictionary<string, MemoryObject>();
+    }
+
+    /// <summary>
+    /// TODO: Not done yet.
+    /// </summary>
+    public class MemoryIndex
+    {
+        public IList<string> PropertiesInIndex = new List<string>();
+        public IDictionary<object, IList<MemoryObject>> Lookup =
+            new Dictionary<object, IList<MemoryObject>>();
     }
 }

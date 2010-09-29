@@ -52,7 +52,9 @@ namespace Azavea.Open.DAO
         string ToCleanString();
 
         /// <summary>
-        /// Returns the appropriate data access layer for this connection.
+        /// Returns the appropriate data access layer for this connection.  If this connection
+        /// is capable of performing "DDL" operations (creating / deleting datastores, indexes, etc)
+        /// this IDaLayer will also implement IDaDdlLayer.
         /// </summary>
         IDaLayer CreateDataAccessLayer();
     }
