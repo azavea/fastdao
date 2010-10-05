@@ -280,11 +280,11 @@ namespace Azavea.Open.DAO
                 }
                 if (desiredType.Equals(typeof (int)))
                 {
-                    return Convert.ToInt32(input);
+                    return input is string ? (int)Decimal.Parse((string)input) : Convert.ToInt32(input);
                 }
                 if (desiredType.Equals(typeof (long)))
                 {
-                    return Convert.ToInt64(input);
+                    return input is string ? (long)Decimal.Parse((string)input) : Convert.ToInt32(input);
                 }
                 if (desiredType.Equals(typeof (double)))
                 {

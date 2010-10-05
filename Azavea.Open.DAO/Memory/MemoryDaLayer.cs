@@ -561,18 +561,334 @@ namespace Azavea.Open.DAO.Memory
     /// </summary>
     public class MemoryTable
     {
+        /// <summary>
+        /// TODO: Not done yet.
+        /// </summary>
         public IDictionary<string, IDictionary<object, IList<MemoryObject>>> Indexes = 
             new Dictionary<string, IDictionary<object, IList<MemoryObject>>>();
+        /// <summary>
+        /// TODO: Not done yet.
+        /// </summary>
         public IDictionary<string, MemoryObject> Values = new Dictionary<string, MemoryObject>();
     }
 
     /// <summary>
-    /// TODO: Not done yet.
+    /// Base class that handles some of the key comparison common across index types.
     /// </summary>
-    public class MemoryIndex
+    public abstract class AbstractMemoryIndex : IMemoryIndex
     {
-        public IList<string> PropertiesInIndex = new List<string>();
-        public IDictionary<object, IList<MemoryObject>> Lookup =
-            new Dictionary<object, IList<MemoryObject>>();
+        /// <summary>
+        /// Data access layer we're using, necessary for type coercion.
+        /// </summary>
+        protected readonly MemoryDaLayer _daLayer;
+        /// <summary>
+        /// The property that this index is on.
+        /// </summary>
+        protected readonly string _property;
+
+        /// <summary>
+        /// Base class that handles some of the key comparison common across index types.
+        /// </summary>
+        /// <param name="layer">The data access layer in use.</param>
+        /// <param name="property">The property to index on.</param>
+        protected AbstractMemoryIndex(MemoryDaLayer layer, string property)
+        {
+            _daLayer = layer;
+            _property = property;
+        }
+
+        /// <summary>
+        /// Gets the keys that match the expressions that are relevent to this index.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <param name="allKeys">All the key values in the index.</param>
+        /// <returns>The values on real objects that match the criteria.</returns>
+        protected IList<object> GetMatchingKeys(DaoCriteria crit, IEnumerable<object> allKeys)
+        {
+            IList<AbstractSinglePropertyExpression> exprs = GetExpressionsForIndex(crit);
+            IList<object> retVal = new List<object>();
+            foreach (object key in allKeys)
+            {
+                if (exprs.Count > 0)
+                {
+                    foreach (AbstractSinglePropertyExpression expr in exprs)
+                    {
+                        if (UnqueryableDataReader.ValueMatchesExpression(key, expr, _daLayer))
+                        {
+                            retVal.Add(key);
+                        }
+                    }
+                }
+                else
+                {
+                    retVal.Add(key);
+                }
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// This returns none if the crit is ORed, or if there are no expressions
+        /// on this index's property.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>The expressions relevant to this index.</returns>
+        protected IList<AbstractSinglePropertyExpression> GetExpressionsForIndex(DaoCriteria crit)
+        {
+            IList<AbstractSinglePropertyExpression> retVal = new List<AbstractSinglePropertyExpression>();
+            if (crit.BoolType == BooleanOperator.And)
+            {
+                foreach (IExpression expr in crit.Expressions)
+                {
+                    if (expr is AbstractSinglePropertyExpression)
+                    {
+                        AbstractSinglePropertyExpression spExpr = (AbstractSinglePropertyExpression) expr;
+                        if (spExpr.Property.Equals(_property))
+                        {
+                            retVal.Add(spExpr);
+                        }
+                    }
+                }
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// Splits a list of objects into a bunch of lists, one for each value of the index's property.
+        /// </summary>
+        /// <param name="objects">A list of potentially unordered objects.</param>
+        /// <returns>Those objects grouped by this property.</returns>
+        protected IDictionary<object, IList<MemoryObject>> SplitObjectsByProperty(
+            IEnumerable<MemoryObject> objects)
+        {
+            IDictionary<object, IList<MemoryObject>> retVal = new Dictionary<object, IList<MemoryObject>>();
+            foreach (MemoryObject obj in objects)
+            {
+                object val = obj.ColValues[_property];
+                IList<MemoryObject> listForVal;
+                if (retVal.ContainsKey(val))
+                {
+                    listForVal = retVal[val];
+                }
+                else
+                {
+                    listForVal = new List<MemoryObject>();
+                    retVal[val] = listForVal;
+                }
+                listForVal.Add(obj);
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// Returns a number indicating how many breaks this index has for the properties used
+        /// in the criteria.  Roughly speaking, higher is better (though the number is an estimate,
+        /// it is possible to have data that makes the index inefficient).  If there are multiple
+        /// indexes, the one that returns the highest number from this method will be used.
+        /// An index should return 1 to indicate that it offers no value for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A number indicating "how good it would be to use this index".</returns>
+        public abstract int GetCardinality(DaoCriteria crit);
+
+        /// <summary>
+        /// Uses the index to return the smallest number of possible matches for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A subset of all objects which may match the criteria.  This is as filtered as
+        ///          this index can make it, but may contain objects that do not match the entire
+        ///          criteria.</returns>
+        public abstract IList<MemoryObject> GetPossibleMatches(DaoCriteria crit);
+
+        /// <summary>
+        /// This method rebuilds the index given a new list of data objects.
+        /// </summary>
+        /// <param name="objects">All the objects in the data store.</param>
+        public abstract void Rebuild(IEnumerable<MemoryObject> objects);
+    }
+    /// <summary>
+    /// An index on a single field, keeps groups of the memory objects in a dictionary
+    /// keyed by the values of the field.
+    /// </summary>
+    public class SinglePropertyMemoryIndex : AbstractMemoryIndex
+    {
+        private IDictionary<object, IList<MemoryObject>> _values;
+
+        /// <summary>
+        /// An index on a single field, keeps groups of the memory objects in a dictionary
+        /// keyed by the values of the field.
+        /// </summary>
+        /// <param name="layer">The data access layer in use.</param>
+        /// <param name="property">The property to index on.</param>
+        /// <param name="objects">All the objects in this index.</param>
+        public SinglePropertyMemoryIndex(MemoryDaLayer layer, string property,
+            IEnumerable<MemoryObject> objects)
+            : base(layer, property)
+        {
+            _values = SplitObjectsByProperty(objects);
+        }
+
+        /// <summary>
+        /// Returns a number indicating how many breaks this index has for the properties used
+        /// in the criteria.  Roughly speaking, higher is better (though the number is an estimate,
+        /// it is possible to have data that makes the index inefficient).  If there are multiple
+        /// indexes, the one that returns the highest number from this method will be used.
+        /// An index should return 1 to indicate that it offers no value for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A number indicating "how good it would be to use this index".</returns>
+        public override int GetCardinality(DaoCriteria crit)
+        {
+            // This is where it gets complicated.  Can you use this index, and
+            // if so, how well?  Current implementation is extremely simplistic, it assumes
+            // any ANDed expression is equally useable.
+            return GetExpressionsForIndex(crit).Count > 0 ? _values.Count : 1;
+        }
+
+        /// <summary>
+        /// Uses the index to return the smallest number of possible matches for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A subset of all objects which may match the criteria.  This is as filtered as
+        ///          this index can make it, but may contain objects that do not match the entire
+        ///          criteria.</returns>
+        public override IList<MemoryObject> GetPossibleMatches(DaoCriteria crit)
+        {
+            List<MemoryObject> retVal = new List<MemoryObject>();
+            foreach (object key in GetMatchingKeys(crit, _values.Keys))
+            {
+                retVal.AddRange(_values[key]);
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// This method rebuilds the index given a new list of data objects.
+        /// </summary>
+        /// <param name="objects">All the objects in the data store.</param>
+        public override void Rebuild(IEnumerable<MemoryObject> objects)
+        {
+            _values = SplitObjectsByProperty(objects);
+        }
+    }
+    /// <summary>
+    /// This is an index that has a nested index (I.E. an index on two or more fields).
+    /// </summary>
+    public class MultiPropertyMemoryIndex : AbstractMemoryIndex
+    {
+        private readonly IDictionary<object, IMemoryIndex> _subIndexes = 
+            new Dictionary<object, IMemoryIndex>();
+
+        private readonly string _childProperty;
+
+        private readonly List<string> _grandchildProperties;
+
+        /// <summary>
+        /// This is an index that has a nested index (I.E. an index on two or more fields).
+        /// </summary>
+        /// <param name="layer">Data access layer in use.</param>
+        /// <param name="property">Property for this index.</param>
+        /// <param name="nextProperties">Properties for the child indexes.  Must have at least one.</param>
+        /// <param name="objects">All objects that will be in this index and its children.</param>
+        public MultiPropertyMemoryIndex(MemoryDaLayer layer, string property,
+            List<string> nextProperties,
+            IEnumerable<MemoryObject> objects)
+            : base(layer, property)
+        {
+            _childProperty = nextProperties[0];
+            if (nextProperties.Count > 1)
+            {
+                _grandchildProperties = nextProperties.GetRange(1, nextProperties.Count - 1);
+            }
+            AddObjectsToSubIndexes(objects);
+        }
+
+        /// <summary>
+        /// Returns a number indicating how many breaks this index has for the properties used
+        /// in the criteria.  Roughly speaking, higher is better (though the number is an estimate,
+        /// it is possible to have data that makes the index inefficient).  If there are multiple
+        /// indexes, the one that returns the highest number from this method will be used.
+        /// An index should return 1 to indicate that it offers no value for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A number indicating "how good it would be to use this index".</returns>
+        public override int GetCardinality(DaoCriteria crit)
+        {
+            int retVal = 1;
+            foreach (IMemoryIndex subIndex in _subIndexes.Values)
+            {
+                retVal += subIndex.GetCardinality(crit);
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// Uses the index to return the smallest number of possible matches for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A subset of all objects which may match the criteria.  This is as filtered as
+        ///          this index can make it, but may contain objects that do not match the entire
+        ///          criteria.</returns>
+        public override IList<MemoryObject> GetPossibleMatches(DaoCriteria crit)
+        {
+            List<MemoryObject> retVal = new List<MemoryObject>();
+            foreach (object key in GetMatchingKeys(crit, _subIndexes.Keys))
+            {
+                retVal.AddRange(_subIndexes[key].GetPossibleMatches(crit));
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// This method rebuilds the index given a new list of data objects.
+        /// </summary>
+        /// <param name="objects">All the objects in the data store.</param>
+        public override void Rebuild(IEnumerable<MemoryObject> objects)
+        {
+            _subIndexes.Clear();
+            AddObjectsToSubIndexes(objects);
+        }
+
+        private void AddObjectsToSubIndexes(IEnumerable<MemoryObject> objects)
+        {
+            IDictionary<object, IList<MemoryObject>> objsByPropVal =
+                SplitObjectsByProperty(objects);
+            foreach (KeyValuePair<object, IList<MemoryObject>> objByPropVal in objsByPropVal)
+            {
+                _subIndexes[objByPropVal.Key] = _grandchildProperties == null
+                    ? (IMemoryIndex)new SinglePropertyMemoryIndex(_daLayer, _childProperty, objByPropVal.Value)
+                    : new MultiPropertyMemoryIndex(_daLayer, _childProperty, _grandchildProperties, objByPropVal.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Any index (single or multi-property) will implement this interface.
+    /// </summary>
+    public interface IMemoryIndex
+    {
+        /// <summary>
+        /// Returns a number indicating how many breaks this index has for the properties used
+        /// in the criteria.  Roughly speaking, higher is better (though the number is an estimate,
+        /// it is possible to have data that makes the index inefficient).  If there are multiple
+        /// indexes, the one that returns the highest number from this method will be used.
+        /// An index should return 1 to indicate that it offers no value for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A number indicating "how good it would be to use this index".</returns>
+        int GetCardinality(DaoCriteria crit);
+        /// <summary>
+        /// Uses the index to return the smallest number of possible matches for this criteria.
+        /// </summary>
+        /// <param name="crit">The query being run.</param>
+        /// <returns>A subset of all objects which may match the criteria.  This is as filtered as
+        ///          this index can make it, but may contain objects that do not match the entire
+        ///          criteria.</returns>
+        IList<MemoryObject> GetPossibleMatches(DaoCriteria crit);
+        /// <summary>
+        /// This method rebuilds the index given a new list of data objects.
+        /// </summary>
+        /// <param name="objects">All the objects in the data store.</param>
+        void Rebuild(IEnumerable<MemoryObject> objects);
     }
 }

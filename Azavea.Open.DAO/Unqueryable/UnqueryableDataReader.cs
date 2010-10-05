@@ -60,12 +60,14 @@ namespace Azavea.Open.DAO.Unqueryable
         /// </summary>
         /// <param name="layer">Data access layer that will give us the data we need.</param>
         /// <param name="mapping">ClassMapping for the type we're returning.</param>
-        /// <param name="criteria">Since there is no way to filter before we read the file,
+        /// <param name="criteria">Since there may be no way to filter before we read the data,
         ///                     the reader checks each row read to see if it matches the
         ///                     criteria, if not, it is skipped.</param>
+        /// <param name="config">The column indexes in the data, keyed by column name.  This may include
+        ///                             columns not in the mapping.</param>
         protected UnqueryableDataReader(UnqueryableDaLayer layer,
-            ClassMapping mapping, DaoCriteria criteria)
-            : base(mapping.AllDataColsInOrder.Count)
+            ClassMapping mapping, DaoCriteria criteria, DataReaderConfig config)
+            : base(config)
         {
             Layer = layer;
             Criteria = criteria;
@@ -73,7 +75,7 @@ namespace Azavea.Open.DAO.Unqueryable
         }
 
         /// <summary>
-        /// This should be called by the child constructor after _indexesByName has been set.
+        /// This should be called at the end of the child class constructor.
         /// </summary>
         protected void PreProcessSorts()
         {
@@ -153,7 +155,7 @@ namespace Azavea.Open.DAO.Unqueryable
             if (_useOrderedResults)
             {
                 // In this case, use the already-read, sorted results instead of
-                // reading directly from the CSV source.
+                // reading directly from the source.
                 if (_orderedIndex < _orderedResults.Count)
                 {
                     _orderedResults[_orderedIndex].CopyTo(_valsByIndex);
@@ -180,17 +182,25 @@ namespace Azavea.Open.DAO.Unqueryable
                     {
                         foundData = true;
                         int x;
-                        for (x = 0; x < rawRow.Count; x++)
+                        // Use min because there could be extra columns, or there could be
+                        // rows with fewer columns than we expect in which case we pad with
+                        // nulls.
+                        int maxColsToCopy = Math.Min(_valsByIndex.Length, rawRow.Count);
+                        for (x = 0; x < maxColsToCopy; x++)
                         {
                             _valsByIndex[x] = rawRow[x];
                             if (_valsByIndex[x] != null)
                             {
                                 // Coerce it to the appropriate type if the mapping has one.
                                 string colName = _namesByIndex[x];
-                                Type dataType = Mapping.DataColTypesByDataCol[colName];
-                                if (dataType != null)
+                                // There may be columns that are not mapped.
+                                if ((colName != null) && Mapping.DataColTypesByDataCol.ContainsKey(colName))
                                 {
-                                    _valsByIndex[x] = Layer.CoerceType(dataType, _valsByIndex[x]);
+                                    Type dataType = Mapping.DataColTypesByDataCol[colName];
+                                    if (dataType != null)
+                                    {
+                                        _valsByIndex[x] = Layer.CoerceType(dataType, _valsByIndex[x]);
+                                    }
                                 }
                             }
                         }
@@ -233,290 +243,12 @@ namespace Azavea.Open.DAO.Unqueryable
             bool anyMatch = false;
             foreach (IExpression expr in criteria.Expressions)
             {
-                bool matches = true;
-                if (expr is EqualExpression)
+                bool matches;
+                if (expr is AbstractSinglePropertyExpression)
                 {
-                    EqualExpression realExpr = (EqualExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if (realExpr.Value == null)
-                    {
-                        if (actualValue != null)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
-                            }
-                            matches = false;
-                        }
-                    }
-                    else
-                    {
-                        // TODO: This doesn't work because we read strings but the params are not strings.
-                        if (!realExpr.Value.Equals(Layer.CoerceType(realExpr.Value.GetType(), actualValue)))
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                           actualValue + "')" + " != '" + realExpr.Value + "'");
-                            }
-                            matches = false;
-                        }
-                    }
-                }
-                else if (expr is EqualInsensitiveExpression)
-                {
-                    EqualInsensitiveExpression realExpr = (EqualInsensitiveExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if (realExpr.Value == null)
-                    {
-                        if (actualValue != null)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
-                            }
-                            matches = false;
-                        }
-                    }
-                    else
-                    {
-                        if (!realExpr.Value.ToString().ToUpper().Equals(actualValue.ToString().ToUpper()))
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                           actualValue + "')" + " != '" + realExpr.Value + "'");
-                            }
-                            matches = false;
-                        }
-                    }
-                }
-                else if (expr is BetweenExpression)
-                {
-                    BetweenExpression realExpr = (BetweenExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if ((realExpr.Min == null) || (realExpr.Max == null) || (actualValue == null))
-                    {
-                        // To be compatible with DB behavior, null is not comparable
-                        // with a value and so never matches.
-                        if (_log.IsDebugEnabled)
-                        {
-                            _log.Debug("This row is no good, " + realExpr.Property + " is null.");
-                        }
-                        matches = false;
-                    }
-                    else
-                    {
-                        if (!((realExpr.Min is IComparable) && (realExpr.Max is IComparable)))
-                        {
-                            throw new LoggingException("You asked for between non-comparable values: " + realExpr);
-                        }
-                        actualValue = Layer.CoerceType(realExpr.Max.GetType(), actualValue);
-                        if ((((IComparable)realExpr.Max).CompareTo(actualValue) >= 0) ||
-                            (((IComparable)realExpr.Min).CompareTo(actualValue) <= 0))
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                           actualValue + "')" + " is not between '" + realExpr.Min +
-                                           "' and '" + realExpr.Max + "'");
-                            }
-                            matches = false;
-                        }
-                    }
-                }
-                else if (expr is GreaterExpression)
-                {
-                    GreaterExpression realExpr = (GreaterExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if ((realExpr.Value == null) || (actualValue == null))
-                    {
-                        // To be compatible with DB behavior, null is not comparable
-                        // with a value and so never matches.
-                        if (_log.IsDebugEnabled)
-                        {
-                            _log.Debug("This row is no good, " + realExpr.Property + " is null.");
-                        }
-                        matches = false;
-                    }
-                    else
-                    {
-                        if (!(realExpr.Value is IComparable))
-                        {
-                            throw new LoggingException("You asked for greater than a non-comparable value: " + realExpr);
-                        }
-                        actualValue = Layer.CoerceType(realExpr.Value.GetType(), actualValue);
-                        if (((IComparable)realExpr.Value).CompareTo(actualValue) >= 0)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                           actualValue + "')" + " <= '" + realExpr.Value + "'");
-                            }
-                            matches = false;
-                        }
-                    }
-                }
-                else if (expr is LesserExpression)
-                {
-                    LesserExpression realExpr = (LesserExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if ((realExpr.Value == null) || (actualValue == null))
-                    {
-                        // To be compatible with DB behavior, null is not comparable
-                        // with a value and so never matches.
-                        if (_log.IsDebugEnabled)
-                        {
-                            _log.Debug("This row is no good, " + realExpr.Property + " is null.");
-                        }
-                        matches = false;
-                    }
-                    else
-                    {
-                        if (!(realExpr.Value is IComparable))
-                        {
-                            throw new LoggingException("You asked for lesser than a non-comparable value: " + realExpr);
-                        }
-                        actualValue = Layer.CoerceType(realExpr.Value.GetType(), actualValue);
-                        if (((IComparable)realExpr.Value).CompareTo(actualValue) <= 0)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                           actualValue + "')" + " >= '" + realExpr.Value + "'");
-                            }
-                            matches = false;
-                        }
-                    }
-                }
-                else if (expr is LikeExpression)
-                {
-                    LikeExpression realExpr = (LikeExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if (realExpr.Value == null)
-                    {
-                        if (actualValue != null)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
-                            }
-                            matches = false;
-                        }
-                    }
-                    else
-                    {
-                        if (actualValue == null)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + " is null.");
-                            }
-                            matches = false;
-                        }
-                        else
-                        {
-                            // Escapes any regex-specific chars.
-                            string regexStr = Regex.Escape(realExpr.Value.ToString());
-                            // Luckily, DB 'like' wildcards (% and _) are not regex chars so we can do
-                            // a simple replace.
-                            regexStr = regexStr.Replace("%", ".*");
-                            regexStr = regexStr.Replace("_", ".");
-                            if (Regex.IsMatch(actualValue.ToString(), regexStr))
-                            {
-                                if (_log.IsDebugEnabled)
-                                {
-                                    _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                               actualValue + "')" + " isn't like '" + realExpr.Value + "'");
-                                }
-                                matches = false;
-                            }
-                        }
-                    }
-                }
-                else if (expr is LikeInsensitiveExpression)
-                {
-                    LikeInsensitiveExpression realExpr = (LikeInsensitiveExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    if (realExpr.Value == null)
-                    {
-                        if (actualValue != null)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
-                            }
-                            matches = false;
-                        }
-                    }
-                    else
-                    {
-                        if (actualValue == null)
-                        {
-                            if (_log.IsDebugEnabled)
-                            {
-                                _log.Debug("This row is no good, " + realExpr.Property + " is null.");
-                            }
-                            matches = false;
-                        }
-                        else
-                        {
-                            // Escapes any regex-specific chars.
-                            string regexStr = Regex.Escape(realExpr.Value.ToString());
-                            // Luckily, DB 'like' wildcards (% and _) are not regex chars so we can do
-                            // a simple replace.
-                            regexStr = regexStr.Replace("%", ".*");
-                            regexStr = regexStr.Replace("_", ".");
-                            if (Regex.IsMatch(actualValue.ToString().ToUpper(), regexStr.ToUpper()))
-                            {
-                                if (_log.IsDebugEnabled)
-                                {
-                                    _log.Debug("This row is no good, " + realExpr.Property + "('" +
-                                               actualValue + "')" + " isn't like '" + realExpr.Value + "'");
-                                }
-                                matches = false;
-                            }
-                        }
-                    }
-                }
-                else if (expr is PropertyInListExpression)
-                {
-                    PropertyInListExpression realExpr = (PropertyInListExpression)expr;
-                    object actualValue = GetRealValue(realExpr.Property);
-                    matches = false;
-                    foreach (object val in realExpr.Values)
-                    {
-                        if (val == null)
-                        {
-                            if (actualValue == null)
-                            {
-                                matches = true;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            if (actualValue == null)
-                            {
-                                break;
-                            }
-                            actualValue = Layer.CoerceType(val.GetType(), actualValue);
-                            if (val.Equals(actualValue))
-                            {
-                                matches = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!matches)
-                    {
-                        if (_log.IsDebugEnabled)
-                        {
-                            _log.Debug("This row is no good, " + realExpr.Property + " is not in this list: " +
-                                       StringHelper.Join(realExpr.Values));
-                        }
-                    }
+                    AbstractSinglePropertyExpression realExpr = (AbstractSinglePropertyExpression) expr;
+                    matches = ValueMatchesExpression(GetRealValue(realExpr.Property),
+                        realExpr, Layer);
                 }
                 else if (expr is CriteriaExpression)
                 {
@@ -545,6 +277,300 @@ namespace Azavea.Open.DAO.Unqueryable
             }
             // We only hit this if the criteria was of type 'or'.
             return anyMatch;
+        }
+
+        /// <summary>
+        /// Utility method to determine if a given value matches a particular expression.
+        /// </summary>
+        /// <param name="actualValue">Real value to check against the expression.</param>
+        /// <param name="expr">Expression to compare the value against.</param>
+        /// <param name="layer">Data access layer we're using, needed for type coercion.</param>
+        /// <returns>True if the value does match the expression, false otherwise.</returns>
+        public static bool ValueMatchesExpression(object actualValue,
+            AbstractSinglePropertyExpression expr, IDaLayer layer)
+        {
+            bool matches = true;
+            if (expr is EqualExpression)
+            {
+                EqualExpression realExpr = (EqualExpression)expr;
+                if (realExpr.Value == null)
+                {
+                    if (actualValue != null)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
+                        }
+                        matches = false;
+                    }
+                }
+                else
+                {
+                    // TODO: This doesn't work because we read strings but the params are not strings.
+                    if (!realExpr.Value.Equals(layer.CoerceType(realExpr.Value.GetType(), actualValue)))
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                       actualValue + "')" + " != '" + realExpr.Value + "'");
+                        }
+                        matches = false;
+                    }
+                }
+            }
+            else if (expr is EqualInsensitiveExpression)
+            {
+                EqualInsensitiveExpression realExpr = (EqualInsensitiveExpression)expr;
+                if (realExpr.Value == null)
+                {
+                    if (actualValue != null)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
+                        }
+                        matches = false;
+                    }
+                }
+                else
+                {
+                    if (!realExpr.Value.ToString().ToUpper().Equals(actualValue.ToString().ToUpper()))
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                       actualValue + "')" + " != '" + realExpr.Value + "'");
+                        }
+                        matches = false;
+                    }
+                }
+            }
+            else if (expr is BetweenExpression)
+            {
+                BetweenExpression realExpr = (BetweenExpression)expr;
+                if ((realExpr.Min == null) || (realExpr.Max == null) || (actualValue == null))
+                {
+                    // To be compatible with DB behavior, null is not comparable
+                    // with a value and so never matches.
+                    if (_log.IsDebugEnabled)
+                    {
+                        _log.Debug("This row is no good, " + realExpr.Property + " is null.");
+                    }
+                    matches = false;
+                }
+                else
+                {
+                    if (!((realExpr.Min is IComparable) && (realExpr.Max is IComparable)))
+                    {
+                        throw new LoggingException("You asked for between non-comparable values: " + realExpr);
+                    }
+                    actualValue = layer.CoerceType(realExpr.Max.GetType(), actualValue);
+                    if ((((IComparable)realExpr.Max).CompareTo(actualValue) >= 0) ||
+                        (((IComparable)realExpr.Min).CompareTo(actualValue) <= 0))
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                       actualValue + "')" + " is not between '" + realExpr.Min +
+                                       "' and '" + realExpr.Max + "'");
+                        }
+                        matches = false;
+                    }
+                }
+            }
+            else if (expr is GreaterExpression)
+            {
+                GreaterExpression realExpr = (GreaterExpression)expr;
+                if ((realExpr.Value == null) || (actualValue == null))
+                {
+                    // To be compatible with DB behavior, null is not comparable
+                    // with a value and so never matches.
+                    if (_log.IsDebugEnabled)
+                    {
+                        _log.Debug("This row is no good, " + realExpr.Property + " is null.");
+                    }
+                    matches = false;
+                }
+                else
+                {
+                    if (!(realExpr.Value is IComparable))
+                    {
+                        throw new LoggingException("You asked for greater than a non-comparable value: " + realExpr);
+                    }
+                    actualValue = layer.CoerceType(realExpr.Value.GetType(), actualValue);
+                    if (((IComparable)realExpr.Value).CompareTo(actualValue) >= 0)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                       actualValue + "')" + " <= '" + realExpr.Value + "'");
+                        }
+                        matches = false;
+                    }
+                }
+            }
+            else if (expr is LesserExpression)
+            {
+                LesserExpression realExpr = (LesserExpression)expr;
+                if ((realExpr.Value == null) || (actualValue == null))
+                {
+                    // To be compatible with DB behavior, null is not comparable
+                    // with a value and so never matches.
+                    if (_log.IsDebugEnabled)
+                    {
+                        _log.Debug("This row is no good, " + realExpr.Property + " is null.");
+                    }
+                    matches = false;
+                }
+                else
+                {
+                    if (!(realExpr.Value is IComparable))
+                    {
+                        throw new LoggingException("You asked for lesser than a non-comparable value: " + realExpr);
+                    }
+                    actualValue = layer.CoerceType(realExpr.Value.GetType(), actualValue);
+                    if (((IComparable)realExpr.Value).CompareTo(actualValue) <= 0)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                       actualValue + "')" + " >= '" + realExpr.Value + "'");
+                        }
+                        matches = false;
+                    }
+                }
+            }
+            else if (expr is LikeExpression)
+            {
+                LikeExpression realExpr = (LikeExpression)expr;
+                if (realExpr.Value == null)
+                {
+                    if (actualValue != null)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
+                        }
+                        matches = false;
+                    }
+                }
+                else
+                {
+                    if (actualValue == null)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + " is null.");
+                        }
+                        matches = false;
+                    }
+                    else
+                    {
+                        // Escapes any regex-specific chars.
+                        string regexStr = Regex.Escape(realExpr.Value.ToString());
+                        // Luckily, DB 'like' wildcards (% and _) are not regex chars so we can do
+                        // a simple replace.
+                        regexStr = regexStr.Replace("%", ".*");
+                        regexStr = regexStr.Replace("_", ".");
+                        if (Regex.IsMatch(actualValue.ToString(), regexStr))
+                        {
+                            if (_log.IsDebugEnabled)
+                            {
+                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                           actualValue + "')" + " isn't like '" + realExpr.Value + "'");
+                            }
+                            matches = false;
+                        }
+                    }
+                }
+            }
+            else if (expr is LikeInsensitiveExpression)
+            {
+                LikeInsensitiveExpression realExpr = (LikeInsensitiveExpression)expr;
+                if (realExpr.Value == null)
+                {
+                    if (actualValue != null)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + " is not null.");
+                        }
+                        matches = false;
+                    }
+                }
+                else
+                {
+                    if (actualValue == null)
+                    {
+                        if (_log.IsDebugEnabled)
+                        {
+                            _log.Debug("This row is no good, " + realExpr.Property + " is null.");
+                        }
+                        matches = false;
+                    }
+                    else
+                    {
+                        // Escapes any regex-specific chars.
+                        string regexStr = Regex.Escape(realExpr.Value.ToString());
+                        // Luckily, DB 'like' wildcards (% and _) are not regex chars so we can do
+                        // a simple replace.
+                        regexStr = regexStr.Replace("%", ".*");
+                        regexStr = regexStr.Replace("_", ".");
+                        if (Regex.IsMatch(actualValue.ToString().ToUpper(), regexStr.ToUpper()))
+                        {
+                            if (_log.IsDebugEnabled)
+                            {
+                                _log.Debug("This row is no good, " + realExpr.Property + "('" +
+                                           actualValue + "')" + " isn't like '" + realExpr.Value + "'");
+                            }
+                            matches = false;
+                        }
+                    }
+                }
+            }
+            else if (expr is PropertyInListExpression)
+            {
+                PropertyInListExpression realExpr = (PropertyInListExpression)expr;
+                matches = false;
+                foreach (object val in realExpr.Values)
+                {
+                    if (val == null)
+                    {
+                        if (actualValue == null)
+                        {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (actualValue == null)
+                        {
+                            break;
+                        }
+                        actualValue = layer.CoerceType(val.GetType(), actualValue);
+                        if (val.Equals(actualValue))
+                        {
+                            matches = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!matches)
+                {
+                    if (_log.IsDebugEnabled)
+                    {
+                        _log.Debug("This row is no good, " + realExpr.Property + " is not in this list: " +
+                                   StringHelper.Join(realExpr.Values));
+                    }
+                }
+            }
+            else
+            {
+                throw new LoggingException("Unsupported expression in query: " + expr);
+            }
+            return matches;
         }
 
         private object GetRealValue(string objPropertyName)

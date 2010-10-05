@@ -38,7 +38,7 @@ namespace Azavea.Open.DAO.Util
         /// <summary>
         /// Logger that may be used by this class or its children.
         /// </summary>
-        protected ILog _log = LogManager.GetLogger(
+        protected static ILog _log = LogManager.GetLogger(
             new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().DeclaringType.Namespace);
         /// <summary>
         /// The number of columns that the data reader can read.
@@ -46,27 +46,51 @@ namespace Azavea.Open.DAO.Util
         protected readonly int _numCols;
         /// <summary>
         /// The column indexes, keyed by the column name.
-        /// NOTE: This must be populated by the implementing class constructor!
         /// </summary>
-        protected readonly IDictionary<string, int> _indexesByName =
-            new CheckedDictionary<string, int>(new CaseInsensitiveStringComparer());
+        protected readonly IDictionary<string, int> _indexesByName;
         /// <summary>
         /// The column names, in order from the data source.
-        /// NOTE: This must be populated by the implementing class constructor!
         /// </summary>
-        protected string[] _namesByIndex;
+        protected readonly string[] _namesByIndex;
         /// <summary>
         /// The values for this row, in column order.
         /// </summary>
         protected readonly object[] _valsByIndex;
 
         /// <summary>
+        /// The config object passed to the constructor.  It is available in case the
+        /// child class needs more data off of it.
+        /// </summary>
+        protected readonly DataReaderConfig _config;
+
+        /// <summary>
         /// Create the data reader.
         /// </summary>
-        /// <param name="numCols">How many columns are there, used to set up some of the cache info.</param>
-        protected CachingDataReader(int numCols)
+        /// <param name="config">The column indexes in the data, keyed by column name.  This may include
+        ///                             columns not in the mapping.</param>
+        protected CachingDataReader(DataReaderConfig config)
         {
-            _numCols = numCols;
+            _config = config;
+            _indexesByName = config.IndexesByName;
+            // It is possible to be skipping columns, so figure out the highest
+            // column index and we'll assume there are that many columns.  It's easier
+            // that way than mapping column 5 to 3 when reading just because we skipped a couple.
+            int maxColNum = 0;
+            foreach (int index in _indexesByName.Values)
+            {
+                if (index > maxColNum)
+                {
+                    maxColNum = index;
+                }
+            }
+            _numCols = maxColNum + 1;
+
+            // This will have nulls for skipped columns.
+            _namesByIndex = new string[_numCols];
+            foreach (KeyValuePair<string, int> indexByName in _indexesByName)
+            {
+                _namesByIndex[indexByName.Value] = indexByName.Key;
+            }
             _valsByIndex = new object[_numCols];
         }
 
@@ -402,7 +426,7 @@ namespace Azavea.Open.DAO.Util
         {
             if ((i < 0) || (i >= _numCols))
             {
-                throw new ArgumentOutOfRangeException("i", "Column index must be >= 0 and < " + _numCols + ".");
+                throw new ArgumentOutOfRangeException("i", "Column index must be >= 0 and < " + _numCols + ", but was " + i);
             }
             return (GetCachedValue(i) == null);
         }
@@ -556,5 +580,23 @@ namespace Azavea.Open.DAO.Util
         /// <returns>A primitive, string, date, NTS geometry, or null if the column
         ///          had no value.</returns>
         protected abstract object GetDataObject(int i);
+
+        /// <summary>
+        /// Child data readers may need to do something complex to get the values
+        /// necessary to configure the parent class, so they should construct and
+        /// pass a DataReaderSetup object.  This way if they need to also configure
+        /// other values at the same time, they can create a more complicated Setup
+        /// object that contains values used in their own constructor.
+        /// </summary>
+        public class DataReaderConfig
+        {
+            /// <summary>
+            /// The column indexes, keyed by the column name.  Defaults to a checked
+            /// dictionary with case-insensitive keys, though you may override it if
+            /// necessary.
+            /// </summary>
+            public IDictionary<string, int> IndexesByName = 
+                new CheckedDictionary<string, int>(new CaseInsensitiveStringComparer());
+        }
     }
 }

@@ -48,15 +48,22 @@ namespace Azavea.Open.DAO.Memory
         /// <param name="objects">Iterator over the list of objects.</param>
         public MemoryDataReader(UnqueryableDaLayer layer, ClassMapping mapping, DaoCriteria criteria,
             IEnumerator<MemoryObject> objects)
-            : base(layer, mapping, criteria)
+            : base(layer, mapping, criteria, GetConfig(mapping))
         {
-            _namesByIndex = new List<string>(mapping.AllDataColsInOrder).ToArray();
-            for (int x = 0; x < _namesByIndex.Length; x++)
-            {
-                _indexesByName[_namesByIndex[x]] = x;
-            }
             _objects = objects;
+
             PreProcessSorts();
+        }
+
+        private static DataReaderConfig GetConfig(ClassMapping mapping)
+        {
+            DataReaderConfig retVal = new DataReaderConfig();
+            int colNum = 0;
+            foreach (string colName in mapping.AllDataColsInOrder)
+            {
+                retVal.IndexesByName[colName] = colNum++;
+            }
+            return retVal;
         }
 
         /// <summary>

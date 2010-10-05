@@ -49,45 +49,49 @@ namespace Azavea.Open.DAO.CSV
         ///                     the reader checks each row read to see if it matches the
         ///                     criteria, if not, it is skipped.</param>
         public CsvDataReader(CsvDaLayer layer, ClassMapping mapping, DaoCriteria criteria)
-            : base(layer, mapping, criteria)
+            : base(layer, mapping, criteria, GetConfig(layer, mapping))
         {
-            _reader = layer.GetReader(mapping);
+            _reader = ((CsvDataReaderConfig) _config).Reader;
+
+            PreProcessSorts();
+        }
+
+        private static DataReaderConfig GetConfig(CsvDaLayer layer, ClassMapping mapping)
+        {
+            CsvDataReaderConfig retVal = new CsvDataReaderConfig();
 
             try
             {
-                IList colNameRow;
+                retVal.Reader = layer.GetReader(mapping);
                 if (CsvDaLayer.UseNamedColumns(mapping))
                 {
-                    // Assume the CSV has row headers, read the header row.
-                    // ReSharper disable DoNotCallOverridableMethodsInConstructor
-                    colNameRow = ReadRawRow();
-                    // ReSharper restore DoNotCallOverridableMethodsInConstructor
-                }
-                else
-                {
-                    colNameRow = new List<string>(Mapping.AllDataColsInOrder);
-                }
-                if (colNameRow == null)
-                {
-                    _namesByIndex = new string[0];
-                }
-                else
-                {
-                    _namesByIndex = new string[colNameRow.Count];
-                    int x = 0;
-                    foreach (string colName in colNameRow)
+                    // If the CSV has row headers, read the header row.
+                    IList colNameRow = ReadRawCsvRow(retVal.Reader);
+                    for (int x = 0; x < colNameRow.Count; x++)
                     {
-                        _indexesByName[colName] = x;
-                        _namesByIndex[x] = colName;
-                        x++;
+                        retVal.IndexesByName[colNameRow[x].ToString()] = x;
                     }
                 }
-                PreProcessSorts();
+                else
+                {
+                    // No row headers, so we must be mapped to column numbers.
+                    // In that case, just map the column number strings to the ints.
+                    foreach (string colStr in mapping.AllDataColsInOrder)
+                    {
+                        // Remember the mapping column numbers are 1-based but
+                        // the internal column numbers are 0-based.
+                        retVal.IndexesByName[colStr] = int.Parse(colStr) - 1;
+                    }
+                }
+                return retVal;
             }
             catch (Exception e)
             {
                 // Problem setting up, close the reader.
-                layer.DoneWithReader(_reader);
+                if (retVal.Reader != null)
+                {
+                    layer.DoneWithReader(retVal.Reader);
+                }
                 throw new LoggingException("Unable to begin reading from CSV file.", e);
             }
         }
@@ -245,6 +249,11 @@ namespace Azavea.Open.DAO.CSV
         /// <returns>A list of the comma-separated strings from this row.</returns>
         protected override IList ReadRawRow()
         {
+            return ReadRawCsvRow(_reader);
+        }
+
+        private static IList ReadRawCsvRow(TextReader reader)
+        {
             IList retVal = new List<string>();
             StringBuilder currentValue = new StringBuilder();
             bool insideQuotes = false;
@@ -253,7 +262,7 @@ namespace Azavea.Open.DAO.CSV
             bool wasQuoted = false;
             while (keepGoing)
             {
-                int intChar = _reader.Read();
+                int intChar = reader.Read();
                 if (intChar == -1)
                 {
                     // done reading.
@@ -270,7 +279,7 @@ namespace Azavea.Open.DAO.CSV
                             {
                                 // This either means the end of the quotes, or it means an
                                 // escaped quote.
-                                int peekedChar = _reader.Peek();
+                                int peekedChar = reader.Peek();
                                 if (peekedChar == -1)
                                 {
                                     // No more chars, can't be an escaped quote.
@@ -284,7 +293,7 @@ namespace Azavea.Open.DAO.CSV
                                         currentValue.Append('"');
                                         // Since we verified the next char is a quote,
                                         // pull it off the reader.
-                                        _reader.Read();
+                                        reader.Read();
                                     }
                                     else
                                     {
@@ -394,6 +403,17 @@ namespace Azavea.Open.DAO.CSV
         public override bool IsClosed
         {
             get { return _reader == null; }
+        }
+
+        /// <summary>
+        /// Adds extra config info necessary when setting up a CSV data reader.
+        /// </summary>
+        public class CsvDataReaderConfig : DataReaderConfig
+        {
+            /// <summary>
+            /// The reader we'll use to get data from the CSV file or stream.
+            /// </summary>
+            public StreamReader Reader;
         }
     }
 }

@@ -22,6 +22,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Azavea.Open.Common.Collections;
 using NUnit.Framework;
@@ -181,6 +182,98 @@ namespace Azavea.Open.DAO.CSV.Tests
             AssertFileContentsSame("..\\..\\Tests\\WriteFour.csv", "..\\..\\Tests\\WriteFive.csv");
         }
 
+        /// <exclude/>
+        [Test]
+        public void TestMissingFirstColumnsWithHeader()
+        {
+            ClassMapping mapping = MakeMapping("Azavea.Open.DAO.CSV.Tests.CsvTestObj,Azavea.Open.DAO.CSV",
+                "withheader", true, new bool[] { false, false, true, true, true });
+            AssertMissingColumns(mapping, "One", 0);
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestMissingMiddleColumnsWithHeader()
+        {
+            ClassMapping mapping = MakeMapping("Azavea.Open.DAO.CSV.Tests.CsvTestObj,Azavea.Open.DAO.CSV",
+                "withheader", true, new bool[] { true, false, false, true, true });
+            AssertMissingColumns(mapping, "Three", null);
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestMissingLastColumnsWithHeader()
+        {
+            ClassMapping mapping = MakeMapping("Azavea.Open.DAO.CSV.Tests.CsvTestObj,Azavea.Open.DAO.CSV",
+                "withheader", true, new bool[] { true, true, false, false, false });
+            AssertMissingColumns(mapping, "Four", new DateTime());
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestMissingFirstColumnsWithoutHeader()
+        {
+            ClassMapping mapping = MakeMapping("Azavea.Open.DAO.CSV.Tests.CsvTestObj,Azavea.Open.DAO.CSV",
+                "withoutheader", false, new bool[] { false, false, true, true, true });
+            AssertMissingColumns(mapping, "One", 0);
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestMissingMiddleColumnsWithoutHeader()
+        {
+            ClassMapping mapping = MakeMapping("Azavea.Open.DAO.CSV.Tests.CsvTestObj,Azavea.Open.DAO.CSV",
+                "withoutheader", false, new bool[] { true, false, false, true, true });
+            AssertMissingColumns(mapping, "Three", null);
+        }
+
+        /// <exclude/>
+        [Test]
+        public void TestMissingLastColumnsWithoutHeader()
+        {
+            ClassMapping mapping = MakeMapping("Azavea.Open.DAO.CSV.Tests.CsvTestObj,Azavea.Open.DAO.CSV",
+                "withoutheader", false, new bool[] { true, true, false, false, false });
+            AssertMissingColumns(mapping, "Four", new DateTime());
+        }
+
+        private static void AssertMissingColumns(ClassMapping mapping, string fieldName, object uninitVal)
+        {
+            FastDAO<CsvTestObj> dao = new FastDAO<CsvTestObj>(
+                new CsvDescriptor(CsvConnectionType.Directory, "..\\..\\Tests\\"), mapping);
+            DictionaryDao dictDao = new DictionaryDao(
+                new CsvDescriptor(CsvConnectionType.Directory, "..\\..\\Tests\\"), mapping);
+            IList<CsvTestObj> objs = dao.Get();
+            IList<CheckedDictionary<string, object>> dicts = dictDao.Get();
+            Assert.AreEqual(12, objs.Count, "Wrong number of real objects.");
+            Assert.AreEqual(12, dicts.Count, "Wrong number of dictionaries.");
+            for (int x = 0; x < objs.Count; x++)
+            {
+                object val;
+                switch (fieldName)
+                {
+                    case "One":
+                        val = objs[x].One;
+                        break;
+                    case "Two":
+                        val = objs[x].Two;
+                        break;
+                    case "Three":
+                        val = objs[x].Three;
+                        break;
+                    case "Four":
+                        val = objs[x].Four;
+                        break;
+                    case "Five":
+                        val = objs[x].Five;
+                        break;
+                    default:
+                        throw new ArgumentException("Field " + fieldName + " isn't handled yet.", "fieldName");
+                }
+                Assert.AreEqual(uninitVal, val, "Field '" + fieldName + "' should be uninitialized because it is unmapped, but isn't.");
+                Assert.IsFalse(dicts[x].ContainsKey(fieldName), "Field '" + fieldName + "' should not be in the dictionary because it is unmapped.");
+            }
+        }
+
         private static void AssertFileGreater(string greaterFile, string lesserFile)
         {
             FileInfo greaterInfo = new FileInfo(greaterFile);
@@ -213,14 +306,18 @@ namespace Azavea.Open.DAO.CSV.Tests
 
         private static ClassMapping MakeMapping(string className, string name, bool headerRow)
         {
-            ClassMapping mapping = new ClassMapping(className, name,
-                                                                      new ClassMapColDefinition[] {
-                                                                                new ClassMapColDefinition("One", headerRow ? "col1" : "1", null),
-                                                                                new ClassMapColDefinition("Two", headerRow ? "col2" : "2", null),
-                                                                                new ClassMapColDefinition("Three", headerRow ? "col3" : "3", null),
-                                                                                new ClassMapColDefinition("Four", headerRow ? "col4" : "4", null),
-                                                                                new ClassMapColDefinition("Five", headerRow ? "col5" : "5", null),
-                                                                            }, !"n/a".Equals(className));
+            return MakeMapping(className, name, headerRow, new bool[] {true, true, true, true, true});
+        }
+        private static ClassMapping MakeMapping(string className, string name, bool headerRow, bool[] whichCols)
+        {
+            List<ClassMapColDefinition> cols = new List<ClassMapColDefinition>();
+            if (whichCols[0]) cols.Add(new ClassMapColDefinition("One", headerRow ? "col1" : "1", null));
+            if (whichCols[1]) cols.Add(new ClassMapColDefinition("Two", headerRow ? "col2" : "2", null));
+            if (whichCols[2]) cols.Add(new ClassMapColDefinition("Three", headerRow ? "col3" : "3", null));
+            if (whichCols[3]) cols.Add(new ClassMapColDefinition("Four", headerRow ? "col4" : "4", null));
+            if (whichCols[4]) cols.Add(new ClassMapColDefinition("Five", headerRow ? "col5" : "5", null));
+            ClassMapping mapping = new ClassMapping(className, name, cols.ToArray(),
+                !"n/a".Equals(className));
             return mapping;
         }
     }
