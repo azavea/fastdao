@@ -546,6 +546,25 @@ namespace Azavea.Open.DAO
             try
             {
                 crit.Expressions.Add(new EqualExpression(propName, val, true));
+                return GetFirst(crit);
+            }
+            finally
+            {
+                DbCaches.Criteria.Return(crit);
+            }
+        }
+
+        /// <summary>
+        /// Queries for one object that matches the given criteria.
+        /// </summary>
+        /// <returns>The first object that matches the criteria.</returns>
+        public T GetFirst(DaoCriteria crit)
+        {
+            // To speed this up, we'll set the limit to one.
+            int oldLimit = crit.Limit;
+            try
+            {
+                crit.Limit = 1;
                 IList<T> list = Get(crit);
 
                 T retVal;
@@ -564,7 +583,7 @@ namespace Azavea.Open.DAO
             }
             finally
             {
-                DbCaches.Criteria.Return(crit);
+                crit.Limit = oldLimit;
             }
         }
 
