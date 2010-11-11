@@ -1239,20 +1239,33 @@ namespace Azavea.Open.DAO
         protected virtual void SetValueOnObject(T dataObj, ClassMapping classMap,
                                                 string colName, object memberValue)
         {
-            MemberInfo info = classMap.AllObjMemberInfosByDataCol[colName];
-            // Don't call MemberType getter twice
-            MemberTypes type = info.MemberType;
-            if (type == MemberTypes.Field)
+            MemberInfo info = null;
+            try
             {
-                FieldInfo fInfo = ((FieldInfo)info);
-                object newValue = memberValue == null ? null : _dataAccessLayer.CoerceType(fInfo.FieldType, memberValue);
-                fInfo.SetValue(dataObj, newValue);
+                info = classMap.AllObjMemberInfosByDataCol[colName];
+                // Don't call MemberType getter twice
+                MemberTypes type = info.MemberType;
+                if (type == MemberTypes.Field)
+                {
+                    FieldInfo fInfo = ((FieldInfo) info);
+                    object newValue = memberValue == null
+                                          ? null
+                                          : _dataAccessLayer.CoerceType(fInfo.FieldType, memberValue);
+                    fInfo.SetValue(dataObj, newValue);
+                }
+                else if (type == MemberTypes.Property)
+                {
+                    PropertyInfo pInfo = ((PropertyInfo) info);
+                    object newValue = memberValue == null
+                                          ? null
+                                          : _dataAccessLayer.CoerceType(pInfo.PropertyType, memberValue);
+                    pInfo.SetValue(dataObj, newValue, null);
+                }
             }
-            else if (type == MemberTypes.Property)
+            catch (Exception e)
             {
-                PropertyInfo pInfo = ((PropertyInfo)info);
-                object newValue = memberValue == null ? null : _dataAccessLayer.CoerceType(pInfo.PropertyType, memberValue);
-                pInfo.SetValue(dataObj, newValue, null);
+                throw new LoggingException("Unable to set value (" + memberValue + ") from column " + colName +
+                    " to member " + (info == null ? "<null>" : info.Name) + " on type " + classMap.TypeName, e);
             }
         }
 
