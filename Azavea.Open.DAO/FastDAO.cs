@@ -1352,9 +1352,6 @@ namespace Azavea.Open.DAO
 
             DaoIterationDelegate<T, P> invokeMe = (DaoIterationDelegate<T, P>)parameters["invokeMe"];
             P itsParams = (P)parameters["parameters"];
-            // Log memory usage.
-            System.Diagnostics.PerformanceCounter counter =
-                new System.Diagnostics.PerformanceCounter("Memory", "Available MBytes");
             Dictionary<string, int> colNums = DbCaches.StringIntDicts.Get();
 
             PopulateColNums(reader, colNums, null);
@@ -1369,7 +1366,6 @@ namespace Azavea.Open.DAO
                 if (count % 1000 == 0)
                 {
                     _log.Info(desc + " iteration: " + count);
-                    _log.Info("Memory: " + counter.NextValue() + "Mb");
                 }
 
                 invokeMe(itsParams, GetDataObjectFromReader(reader, colNums, null));
