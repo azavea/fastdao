@@ -4,3 +4,6 @@
 [submodule "Azavea.Open.DAO"]
 	path = Azavea.Open.DAO
 	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO
+[submodule "Azavea.Open.DAO.CSV"]
+	path = Azavea.Open.DAO.CSV
+	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.CSV
