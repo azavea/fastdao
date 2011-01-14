@@ -16,3 +16,6 @@
 [submodule "Azavea.Open.DAO.PostgreSQL"]
 	path = Azavea.Open.DAO.PostgreSQL
 	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.PostgreSQL
+[submodule "Azavea.Open.DAO.SQLServer"]
+	path = Azavea.Open.DAO.SQLServer
+	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.SQLServer
