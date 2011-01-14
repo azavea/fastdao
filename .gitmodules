@@ -10,3 +10,6 @@
 [submodule "Azavea.Open.DAO.Firebird"]
 	path = Azavea.Open.DAO.Firebird
 	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.Firebird
+[submodule "Azavea.Open.DAO.OleDb"]
+	path = Azavea.Open.DAO.OleDb
+	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.OleDb
