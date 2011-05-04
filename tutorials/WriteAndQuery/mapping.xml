@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<mapping>
+	<class name="WriteAndQuery.DataClass,WriteAndQuery" table="NameTable">
+		<id name="ID" column="id_in_datasource" />
+		<property name="Name" column="name_in_datasource" />
+	</class>
+</mapping>

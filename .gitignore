@@ -1,3 +1,5 @@
 *.user
 *.suo
 _ReSharper*
+releasebin/
+FastDAO*.zip
