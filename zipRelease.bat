@@ -15,7 +15,7 @@ if "%2" neq "" (
 )
 
 echo Zipping bin/Release dir.
-set zipexe=\\lr02\7z\7z.exe
+set zipexe=\\lr01\7z\7z.exe
 if not exist !zipexe! (
     echo Unable to access !zipexe!
     exit /b 1

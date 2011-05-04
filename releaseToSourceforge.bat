@@ -18,14 +18,14 @@ if "%2" neq "" (
 set apidir=api_%version%
 
 rem Hack: This just says "y" to the "I don't recognize this key" warning and quits.
-\\lr02\putty\psftp.exe azavea@web.sourceforge.net < yes.txt
+\\lr01\putty\psftp.exe azavea@web.sourceforge.net < yes.txt
 if %errorlevel% neq 0 (
     echo ^^^^^^ Ignore those errors, that was just to eliminate the key warning.
     %COMSPEC% /c
 )
 
 rem Hack: This just says "y" to the "I don't recognize this key" warning and quits.
-\\lr02\putty\psftp.exe azavea@frs.sourceforge.net < yes.txt
+\\lr01\putty\psftp.exe azavea@frs.sourceforge.net < yes.txt
 if %errorlevel% neq 0 (
     echo ^^^^^^ Ignore those errors, that was just to eliminate the key warning.
     %COMSPEC% /c
@@ -72,7 +72,7 @@ echo put Presentation.css >> put.txt
 echo quit >> put.txt
 
 echo Executing sftp upload...
-\\lr02\putty\psftp.exe %sf_user%,fastdao@web.sourceforge.net -pw %sf_password% < put.txt
+\\lr01\putty\psftp.exe %sf_user%,fastdao@web.sourceforge.net -pw %sf_password% < put.txt
 
 echo Building sftp command to put the binary release.
 echo Removing sftp command file if it exists...
@@ -86,7 +86,7 @@ echo cd releases >> put.txt
 echo put FastDAO_%version%.zip >> put.txt
 echo quit >> put.txt
 echo Executing sftp upload...
-\\lr02\putty\psftp.exe %sf_user%,fastdao@web.sourceforge.net -pw %sf_password% < put.txt
+\\lr01\putty\psftp.exe %sf_user%,fastdao@web.sourceforge.net -pw %sf_password% < put.txt
 
 if "%2" neq "" (
     popd
