@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using Azavea.Open.DAO;
 using Azavea.Open.DAO.Criteria;
 using Azavea.Open.DAO.CSV;
@@ -24,26 +24,41 @@ namespace WriteAndQuery
             Console.WriteLine();
             Console.WriteLine("First, enter some names to store in the CSV file ('done' when finished):");
             // For the super simple example, we'll use a CSV file.
+            string csvFileName = "Data.csv";
+            // Make sure there isn't one already.
+            File.Delete(csvFileName);
             ConnectionDescriptor csvDescriptor = new CsvDescriptor(
-                CsvConnectionType.FileName, "Data.csv");
+                CsvConnectionType.FileName, csvFileName);
             // The ../.. is because you're probably running this in the /bin/debug directory.
             FastDAO<DataClass> csvDao = new FastDAO<DataClass>(csvDescriptor, "../../mapping.xml");
+            // This gets some user input and stores it in the CSV
             ReadAndStore(csvDao);
+            // This queries the CSV and prints the results.
             QueryAndPrint(csvDao);
 
             Console.WriteLine();
             Console.WriteLine("Next, enter some names to store in the SQLite database.");
-            Console.WriteLine("Enter a few of the same ones if you want. ('done' when finished):");
+            Console.WriteLine("(Again, 'done' when finished):");
             // Just to show how easy it is to switch data sources, we'll run the same code
             // only this time using a SQLite database.
             ConnectionDescriptor sqliteDescriptor = new SQLiteDescriptor("Data.sqlite");
             FastDAO<DataClass> sqliteDao = new FastDAO<DataClass>(sqliteDescriptor, "../../mapping.xml");
+
+            // This just sets up the tables, which we have to do in this example but
+            // in real life would have been done already.
+            SecretSetupDontLookAtThis(sqliteDao);
+
+            // Same input and querying, except this time with a database instead of a CSV.
             ReadAndStore(sqliteDao);
             QueryAndPrint(sqliteDao);
+
+            Console.WriteLine("Hit any key to exit.");
+            Console.ReadKey();
         }
 
         private static void ReadAndStore(FastDAO<DataClass> dao)
         {
+            Console.Write("> ");
             string input = Console.ReadLine();
             while (!"done".Equals(input))
             {
@@ -53,6 +68,7 @@ namespace WriteAndQuery
                 dao.Insert(storeMe);
 
                 // read the next line of input.
+                Console.Write("> ");
                 input = Console.ReadLine();
             }
         }
@@ -101,14 +117,14 @@ namespace WriteAndQuery
                 "Processing Data Classes");
         }
 
-        #region Tutorial Stuff
-        private void SecretSetupDontLookAtThis<T>(FastDAO<T> dao) where T : class, new()
+        #region Basic Setup Stuff
+        private static void SecretSetupDontLookAtThis<T>(FastDAO<T> dao) where T : class, new()
         {
             // What are you doing reading this? :-)
 
             // Okay so actually what this is doing is using the FastDAO's
             // lower level code (the Data Access Layer) to blow away the
-            // tutorial database and recreate a blank one.  This is the kind
+            // example database and recreate a blank one.  This is the kind
             // of thing that is handy for unit tests or tutorials, but you'll
             // probably never use in production, so you can ignore it if you're
             // trying out FastDAO for the first time.
