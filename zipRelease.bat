@@ -22,7 +22,8 @@ if not exist !zipexe! (
 )
 
 set releasedir=release_temp
-set libdir=!releasedir!\lib
+set srclibdir=lib
+set destlibdir=!releasedir!\lib
 set exampledir=!releasedir!\examples
 
 if exist "!releasedir!" (
@@ -35,19 +36,7 @@ if exist "!releasedir!" (
 mkdir "!releasedir!"
 mkdir "!libdir!"
 mkdir "!exampledir!"
-FOR /R "Azavea.Open.DAO\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!"
-mkdir !libdir!\CSV
-FOR /R "Azavea.Open.DAO.CSV\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!\CSV"
-mkdir !libdir!\Firebird
-FOR /R "Azavea.Open.DAO.Firebird\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!\Firebird"
-mkdir !libdir!\OleDb
-FOR /R "Azavea.Open.DAO.OleDb\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!\OleDb"
-mkdir !libdir!\PostgreSQL
-FOR /R "Azavea.Open.DAO.PostgreSQL\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!\PostgreSQL"
-mkdir !libdir!\SQLite
-FOR /R "Azavea.Open.DAO.SQLite\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!\SQLite"
-mkdir !libdir!\SQLServer
-FOR /R "Azavea.Open.DAO.SQLServer\bin\Release" %%f IN (*.*) DO copy "%%f" "!libdir!\SQLServer"
+xcopy /s /i "!srclibdir!" "!destlibdir!"
 
 rem copy "examples\*.sln" "!exampledir!"
 FOR /D %%d IN (examples\*) DO (

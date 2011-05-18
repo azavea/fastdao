@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WriteAndQuery", "WriteAndQuery.csproj", "{C702C4F7-614D-4FF5-8874-D0739D9418C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WriteAndQuery", "WriteAndQuery\WriteAndQuery.csproj", "{C702C4F7-614D-4FF5-8874-D0739D9418C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

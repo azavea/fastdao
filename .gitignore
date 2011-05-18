@@ -1,5 +1,6 @@
+lib/
 *.user
 *.suo
 _ReSharper*
-releasebin/
+release_temp/
 FastDAO*.zip
