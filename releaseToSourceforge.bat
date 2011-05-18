@@ -95,7 +95,9 @@ if %errorlevel% neq 0 (
     echo ERROR: Unable to create new release branch.
     exit /b 8
 )
-echo %sf_password% | git push --repo=ssh://%sf_user%@fastdao.git.sourceforge.net/gitroot/fastdao/fastdao %releasebranch%
+git remote rm origin
+git remote add origin ssh://%sf_user%@fastdao.git.sourceforge.net/gitroot/fastdao/fastdao
+echo %sf_password% | git push %releasebranch%
 if %errorlevel% neq 0 (
     echo ERROR: Unable to push release branch up to sourceforge.
     exit /b 9
