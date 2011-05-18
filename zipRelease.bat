@@ -38,7 +38,7 @@ mkdir "!libdir!"
 mkdir "!exampledir!"
 xcopy /s /i "!srclibdir!" "!destlibdir!"
 
-rem copy "examples\*.sln" "!exampledir!"
+copy "examples\*.sln" "!exampledir!"
 FOR /D %%d IN (examples\*) DO (
     mkdir "!exampledir!\%%~nd"
     copy "%%d\*.sln" "!exampledir!\%%~nd"
