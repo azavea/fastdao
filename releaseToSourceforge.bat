@@ -88,18 +88,22 @@ echo quit >> put.txt
 echo Executing sftp upload...
 \\lr01\putty\psftp.exe %sf_user%,fastdao@web.sourceforge.net -pw %sf_password% < put.txt
 
-echo Creating release branch.
-set releasebranch=release_%version%
-git checkout -b %releasebranch%
-if %errorlevel% neq 0 (
-    echo ERROR: Unable to create new release branch.
-    exit /b 8
-)
+echo Creating release tag.
+set releasetag=release_%version%
 git remote rm origin
 git remote add origin ssh://%sf_user%@fastdao.git.sourceforge.net/gitroot/fastdao/fastdao
-echo %sf_password% | git push %releasebranch%
 if %errorlevel% neq 0 (
-    echo ERROR: Unable to push release branch up to sourceforge.
+    echo ERROR: Unable to set ssh origin to sourceforge.
+    exit /b 9
+)
+git tag %releasetag%
+if %errorlevel% neq 0 (
+    echo ERROR: Unable to create new release tag.
+    exit /b 8
+)
+echo %sf_password% | git push
+if %errorlevel% neq 0 (
+    echo ERROR: Unable to push release tag up to sourceforge.
     exit /b 9
 )
 
