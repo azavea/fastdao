@@ -28,7 +28,7 @@ if %errorlevel% neq 0 (
 echo DirectoryIndex Index.html >> "%apidir%\.htaccess"
 
 echo Executing scp upload of the Sandcastle docs...
-echo yes | \\lr01\putty\pscp.exe -r %apidir% azaveaci,fastdao@web.sourceforge.net:htdocs
+echo yes | \\lr01\putty\pscp.exe -i "C:\Documents and Settings\hudson\.ssh\id_rsa" -r %apidir% azaveaci,fastdao@web.sourceforge.net:htdocs
 if %errorlevel% neq 0 (
     echo ERROR: Unable to copy up API docs to sourceforge.
     exit /b 3
@@ -38,14 +38,14 @@ echo Adding extra copy of presentation.css with correct capitalization.
 rem Hack: Sandcastle creates "Presentation.css" but references "presentation.css".
 rem       On Sourceforge (case sensitive file system) that doesn't work.  Copy it
 rem       in case it is used both ways.
-echo yes | \\lr01\putty\pscp.exe -r %apidir%\styles\Presentation.css azaveaci,fastdao@web.sourceforge.net:htdocs\%apidir%\styles\presentation.css
+echo yes | \\lr01\putty\pscp.exe -i "C:\Documents and Settings\hudson\.ssh\id_rsa" %apidir%\styles\Presentation.css azaveaci,fastdao@web.sourceforge.net:htdocs\%apidir%\styles\presentation.css
 if %errorlevel% neq 0 (
     echo ERROR: Unable to copy up presentation.css to sourceforge.
     exit /b 3
 )
 
 echo Executing scp upload of the release zipfile...
-echo yes | \\lr01\putty\pscp.exe FastDAO_%version%.zip azaveaci,fastdao@web.sourceforge.net:/home/frs/project/f/fa/fastdao
+echo yes | \\lr01\putty\pscp.exe -i "C:\Documents and Settings\hudson\.ssh\id_rsa" FastDAO_%version%.zip azaveaci,fastdao@web.sourceforge.net:/home/frs/project/f/fa/fastdao
 
 echo Creating release tag.
 set releasetag=release_%version%
