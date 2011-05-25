@@ -45,7 +45,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Executing scp upload of the release zipfile...
-echo yes | \\lr01\putty\pscp.exe -i "C:\Documents and Settings\hudson\.ssh\id_rsa.ppk" FastDAO_%version%.zip azaveaci,fastdao@web.sourceforge.net:/home/frs/project/f/fa/fastdao
+echo yes | \\lr01\putty\pscp.exe -i "C:\Documents and Settings\hudson\.ssh\id_rsa.ppk" FastDAO_%version%.zip azaveaci,fastdao@web.sourceforge.net:/home/frs/project/f/fa/fastdao/releases
 
 echo Converting to editable remote git repo.
 set releasetag=release_%version%
