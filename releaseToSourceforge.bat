@@ -47,25 +47,30 @@ if %errorlevel% neq 0 (
 echo Executing scp upload of the release zipfile...
 echo yes | \\lr01\putty\pscp.exe -i "C:\Documents and Settings\hudson\.ssh\id_rsa.ppk" FastDAO_%version%.zip azaveaci,fastdao@web.sourceforge.net:/home/frs/project/f/fa/fastdao/releases
 
-echo Converting to editable remote git repo.
 set releasetag=release_%version%
-git remote rm origin
-git remote add origin ssh://azaveaci@fastdao.git.sourceforge.net/gitroot/fastdao/fastdao
+
+echo Converting to editable remote git repo.
+call git remote rm origin
+if %errorlevel% neq 0 (
+    echo ERROR: Unable to remove old origin.
+    exit /b 4
+)
+call git remote add origin ssh://azaveaci@fastdao.git.sourceforge.net/gitroot/fastdao/fastdao
 if %errorlevel% neq 0 (
     echo ERROR: Unable to set ssh origin to sourceforge.
-    exit /b 9
+    exit /b 5
 )
 echo Creating release tag.
-git tag %releasetag%
+call git tag %releasetag%
 if %errorlevel% neq 0 (
     echo ERROR: Unable to create new release tag.
-    exit /b 8
+    exit /b 6
 )
 echo Pushing tag up to remote repo.
-git push --tags
+call git push --tags
 if %errorlevel% neq 0 (
     echo ERROR: Unable to push release tag up to sourceforge.
-    exit /b 9
+    exit /b 7
 )
 
 if "%2" neq "" (
