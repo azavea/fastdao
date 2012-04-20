@@ -1,24 +1,24 @@
 [submodule "Azavea.Open.DAO"]
 	path = Azavea.Open.DAO
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO
+	url = git://github.com/azavea/net-dao.git
 [submodule "Azavea.Open.DAO.CSV"]
 	path = Azavea.Open.DAO.CSV
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.CSV
+	url = git://github.com/azavea/net-dao-csv.git
 [submodule "Azavea.Open.DAO.Firebird"]
 	path = Azavea.Open.DAO.Firebird
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.Firebird
+	url = git://github.com/azavea/net-dao-firebird.git
 [submodule "Azavea.Open.DAO.OleDb"]
 	path = Azavea.Open.DAO.OleDb
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.OleDb
+	url = git://github.com/azavea/net-dao-oledb.git
 [submodule "Azavea.Open.DAO.PostgreSQL"]
 	path = Azavea.Open.DAO.PostgreSQL
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.PostgreSQL
+    url = git://github.com/azavea/net-dao-postgresql.git
 [submodule "Azavea.Open.DAO.SQLServer"]
 	path = Azavea.Open.DAO.SQLServer
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.SQLServer
+	url = git://github.com/azavea/net-dao-sqlserver.git
 [submodule "Azavea.Open.DAO.SQLite"]
 	path = Azavea.Open.DAO.SQLite
-	url = git://fastdao.git.sourceforge.net/gitroot/fastdao/Azavea.Open.DAO.SQLite
+	url = git://github.com/azavea/net-dao-sqlite.git
 [submodule "Azavea.Open.Common"]
 	path = Azavea.Open.Common
-	url = git://oatmealutils.git.sourceforge.net/gitroot/oatmealutils/Azavea.Open.Common
+	url = git://github.com/azavea/net-om-utils-common.git
