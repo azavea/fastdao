@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azavea.Open.DAO", "Azavea.Open.DAO\Azavea.Open.DAO.csproj", "{A510DDB6-F817-4610-B08C-305EB937CE4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azavea.Open.Common", "Azavea.Open.Common\Azavea.Open.Common.csproj", "{ADBFE412-4F06-454A-AAF5-E93719E3B1FD}"
