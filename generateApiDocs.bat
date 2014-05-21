@@ -39,8 +39,8 @@ echo     ^</assemblies^> >> apidocs.shfb
 echo     ^<dependencies^> >> apidocs.shfb
 echo         ^<dependencyItem depPath=".\Azavea.Open.Common\lib\log4net\log4net.dll" /^> >> apidocs.shfb
 echo         ^<dependencyItem depPath=".\Azavea.Open.Common\lib\nunit\nunit.framework.dll" /^> >> apidocs.shfb
-echo         ^<dependencyItem depPath=".\Azavea.Open.DAO\lib\GeoAPI.dll" /^> >> apidocs.shfb
-echo         ^<dependencyItem depPath=".\Azavea.Open.DAO.PostgreSQL\lib\NetTopologySuite.dll" /^> >> apidocs.shfb
+echo         ^<dependencyItem depPath=".\Azavea.Open.DAO\lib\geoapi\GeoAPI.dll" /^> >> apidocs.shfb
+echo         ^<dependencyItem depPath=".\Azavea.Open.DAO.PostgreSQL\lib\nettopologysuite\NetTopologySuite.dll" /^> >> apidocs.shfb
 echo     ^</dependencies^> >> apidocs.shfb
 echo     ^<ProjectSummary^> FastDAO is a data-access library intended to simplify access to different databases and other data sources. >> apidocs.shfb
 echo                        See the ^&lt;a href="http://sourceforge.net/apps/mediawiki/fastdao/index.php?title=Main_Page"^&gt;wiki^&lt;/a^&gt; for an introduction and tutorials. >> apidocs.shfb
